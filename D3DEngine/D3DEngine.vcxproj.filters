@@ -22,6 +22,12 @@
     <Filter Include="Source Files\Graphics">
       <UniqueIdentifier>{4cb19f8a-dc16-46c8-a15d-c32ac670766e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Graphics\Shaders">
+      <UniqueIdentifier>{6903f148-5839-4a4b-a7a0-4a579e58d038}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\Shaders">
+      <UniqueIdentifier>{ce700f5c-5c23-411e-9093-4102b14ec833}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\stone01.tga">
@@ -41,9 +47,6 @@
     <ClCompile Include="Source\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ColorShader.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Source\D3D.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
@@ -56,8 +59,20 @@
     <ClCompile Include="Source\Texture.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Source\ColorShader.cpp">
+      <Filter>Source Files\Graphics\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\LightShader.cpp">
+      <Filter>Source Files\Graphics\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Shader.cpp">
+      <Filter>Source Files\Graphics\Shaders</Filter>
+    </ClCompile>
     <ClCompile Include="Source\TextureShader.cpp">
-      <Filter>Source Files\Graphics</Filter>
+      <Filter>Source Files\Graphics\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="source\LightSource.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -76,9 +91,6 @@
     <ClInclude Include="Source\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ColorShader.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Source\D3D.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
@@ -91,8 +103,17 @@
     <ClInclude Include="Source\Texture.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Source\TextureShader.h">
+    <ClInclude Include="Source\Shader.h">
       <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ColorShader.h">
+      <Filter>Header Files\Graphics\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\LightShader.h">
+      <Filter>Header Files\Graphics\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\TextureShader.h">
+      <Filter>Header Files\Graphics\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -106,6 +127,12 @@
       <Filter>Resource Files</Filter>
     </FxCompile>
     <FxCompile Include="Source\shaders\VertexShader.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
+    <FxCompile Include="Source\shaders\LightPixelShader.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
+    <FxCompile Include="Source\shaders\LightVertexShader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
   </ItemGroup>

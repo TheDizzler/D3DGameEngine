@@ -22,6 +22,12 @@ private:
 		XMFLOAT2 texture;
 	};
 
+	struct VertexLight {
+		XMFLOAT3 position;
+		XMFLOAT2 texture;
+		XMFLOAT3 normal;
+	};
+
 public:
 	Model();
 	~Model();
@@ -34,10 +40,12 @@ public:
 
 	int getIndexCount();
 
+	ID3D11ShaderResourceView* getTexture();
+
 private:
 
 	bool hasTexture;
-
+	Texture* texture;
 	ID3D11Buffer *vertexBuffer, *indexBuffer;
 	int vertexCount, indexCount;
 
@@ -46,15 +54,8 @@ private:
 	void shutdownBuffers();
 	void renderBuffers(ID3D11DeviceContext* deviceContext);
 
-
-public:
-
-	ID3D11ShaderResourceView* getTexture();
-
-
-private:
-
-	Texture* texture;
+	
+	bool initializeLightBuffers(ID3D11Device* device);
 	bool initializeTextureBuffers(ID3D11Device* device);
 	bool loadTexture(ID3D11Device*, ID3D11DeviceContext*, char*);
 	void releaseTexture();

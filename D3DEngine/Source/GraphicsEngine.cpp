@@ -37,23 +37,33 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 		return false;
 	}
 
-	/*if (!model->initialize(device, deviceContext)) {
+	modelb = new Model();
+	if (!modelb->initialize(device, deviceContext)) {
 		MessageBox(NULL, L"Error trying to load model", L"ERROR", MB_OK);
 		return false;
-	}*/
+	}
+	//modelb->setPosition();
+
+	light = new LightSource();
+	light->setDiffuseColor(1.0f, 0.0f, 1.0f, 1.0f);
+	light->setDirection(0.0f, 0.0f, 1.0f);
 
 	colorShader = new ColorShader();
-	if (!colorShader->initialize(device, hwnd)) {
+	if (!colorShader->initialize(device, hwnd, COLOR_VERTEX_SHADER, COLOR_PIXEL_SHADER)) {
 		MessageBox(hwnd, L"Error initializing Color Shader", L"ERROR", MB_OK);
 		return false;
 	}
 
-	// Create the texture shader object.
-	textureShader = new TextureShader;
+	textureShader = new TextureShader();
+	if (!textureShader->initialize(device, hwnd, TEXTURE_VERTEX_SHADER, TEXTURE_PIXEL_SHADER)) {
+		MessageBox(hwnd, L"Could not initialize the Texture Shader object.", L"Error", MB_OK);
+		return false;
+	}
 
-	// Initialize the color shader object.
-	if (!textureShader->initialize(device, hwnd)) {
-		MessageBox(hwnd, L"Could not initialize the color shader object.", L"Error", MB_OK);
+
+	lightShader = new LightShader();
+	if (!lightShader->initialize(device, hwnd, LIGHT_VERTEX_SHADER, LIGHT_PIXEL_SHADER)) {
+		MessageBox(hwnd, L"Could not initialize the Light Shader object.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -101,7 +111,7 @@ void GraphicsEngine::testText() {
 		ZeroMemory(&desc1, sizeof(DXGI_OUTPUT_DESC));
 		output->GetDesc(&desc1);
 		wostringstream ws2;
-		ws2 << " DeviceName: " << desc1.DeviceName << " AttachedToDesktop: " << desc1.AttachedToDesktop <<  " Monitor: " << desc1.Monitor;
+		ws2 << " DeviceName: " << desc1.DeviceName << " AttachedToDesktop: " << desc1.AttachedToDesktop << " Monitor: " << desc1.Monitor;
 		str.assign(ws2.str());
 		textFactory->editText(label, str);
 	}
@@ -110,12 +120,12 @@ void GraphicsEngine::testText() {
 	wostringstream modes;
 	modes << "numModes: " << numModes << "\n";
 	for (int j = 0; j < numModes; j++) {
-		
-		
-		modes << "Format: " << displayModeList[j].Format  << " Width: " << displayModeList[j].Width << " Height: " << displayModeList[j].Height << " ";
+
+
+		modes << "Format: " << displayModeList[j].Format << " Width: " << displayModeList[j].Width << " Height: " << displayModeList[j].Height << " ";
 		if (j % 4 == 3)
 			modes << "\n";
-		
+
 	}
 	str.assign(modes.str());
 	textFactory->editText(label, str);
@@ -130,6 +140,16 @@ void GraphicsEngine::update(double time, int fps) {
 	ws << "FPS: " << fps << "   Time: " << time << "s";
 	wstring str(ws.str());
 	textFactory->editText(timer, str);
+
+	static float rotation = 0.0f;
+
+
+	rotation += (float) XM_PI * 0.01f;
+	if (rotation > 360.0f) {
+		rotation -= 360.0f;
+	}
+	
+	worldMatrix = XMMatrixRotationY(rotation);
 
 }
 
@@ -146,14 +166,18 @@ void GraphicsEngine::render() {
 	camera->render();
 	camera->getViewMatrix(viewMatrix);
 
-	model->render(deviceContext);
-	/*if (!colorShader->render(deviceContext, model->getIndexCount(), worldMatrix, viewMatrix, projectionMatrix))
+
+	/*modelb->render(deviceContext);
+	if (!colorShader->render(deviceContext, modelb->getIndexCount(), worldMatrix, viewMatrix, projectionMatrix))
 		MessageBox(NULL, L"Color Shader malfunction.", L"ERROR", MB_OK);*/
-	
-	
-	if (!textureShader->render(deviceContext, model->getIndexCount(), worldMatrix, viewMatrix,
+
+	model->render(deviceContext);
+	/*if (!textureShader->render(deviceContext, model->getIndexCount(), worldMatrix, viewMatrix,
 		projectionMatrix, model->getTexture()))
-		MessageBox(NULL, L"Texture Shader malfunction.", L"ERROR", MB_OK);
+		MessageBox(NULL, L"Texture Shader malfunction.", L"ERROR", MB_OK);*/
+	if (!lightShader->render(deviceContext, model->getIndexCount(), worldMatrix, viewMatrix,
+		projectionMatrix, model->getTexture(), light->direction, light->diffuseColor))
+		MessageBox(NULL, L"Light Shader malfunction.", L"ERROR", MB_OK);
 
 	// This IF check is being run every frame and could be avoided
 	if (Globals::vsync_enabled) {
@@ -183,6 +207,8 @@ void GraphicsEngine::render() {
 
 void GraphicsEngine::shutdown() {
 
+	delete light;
+	lightShader->shutdown();
 	textureShader->shutdown();
 	colorShader->shutdown();
 	model->shutdown();

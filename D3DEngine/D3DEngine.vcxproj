@@ -152,8 +152,11 @@
     <ClCompile Include="Source\D3D.cpp" />
     <ClCompile Include="Source\GraphicsEngine.cpp" />
     <ClCompile Include="Source\Input.cpp" />
+    <ClCompile Include="Source\LightShader.cpp" />
+    <ClCompile Include="source\LightSource.cpp" />
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\Model.cpp" />
+    <ClCompile Include="Source\Shader.cpp" />
     <ClCompile Include="Source\TextFactory.cpp" />
     <ClCompile Include="Source\Texture.cpp" />
     <ClCompile Include="Source\TextureShader.cpp" />
@@ -165,8 +168,10 @@
     <ClInclude Include="Source\Globals.h" />
     <ClInclude Include="Source\GraphicsEngine.h" />
     <ClInclude Include="Source\Input.h" />
+    <ClInclude Include="Source\LightShader.h" />
     <ClInclude Include="Source\LightSource.h" />
     <ClInclude Include="Source\Model.h" />
+    <ClInclude Include="Source\Shader.h" />
     <ClInclude Include="Source\TextFactory.h" />
     <ClInclude Include="Source\Texture.h" />
     <ClInclude Include="Source\TextureShader.h" />
@@ -182,6 +187,14 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Source\shaders\VertexShader.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Source\shaders\LightPixelShader.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Source\shaders\LightVertexShader.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

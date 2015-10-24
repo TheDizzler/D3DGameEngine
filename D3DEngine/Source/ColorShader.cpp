@@ -7,26 +7,37 @@ ColorShader::ColorShader() {
 
 ColorShader::~ColorShader() {
 
-	ShutdownShader();
 }
 
 
-bool ColorShader::initialize(ID3D11Device* device, HWND hwnd) {
-	bool result;
-
-	if (!InitializeShader(device, hwnd, L"./source/shaders/VertexShader.hlsl", L"./source/shaders/PixelShader.hlsl")) {
-		return false;
-	}
-
-	return true;
-}
+//bool ColorShader::initialize(ID3D11Device* device, HWND hwnd) {
+//	bool result;
+//
+//	if (!initializeShader(device, hwnd, L"./source/shaders/VertexShader.hlsl", L"./source/shaders/PixelShader.hlsl")) {
+//		return false;
+//	}
+//
+//	return true;
+//}
 
 
 void ColorShader::shutdown() {
 
-	ShutdownShader();
+	if(matrixBuffer) {
+		matrixBuffer->Release();
+	}
 
-	return;
+	if (layout) {
+		layout->Release();
+	}
+
+	if (pixelShader) {
+		pixelShader->Release();
+	}
+
+	if (vertexShader) {
+		vertexShader->Release();
+	}
 }
 
 
@@ -35,17 +46,17 @@ bool ColorShader::render(ID3D11DeviceContext* deviceContext, int indexCount,
 	XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix) {
 
 
-	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix)) {
+	if (!setShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix)) {
 		return false;
 	}
 
-	RenderShader(deviceContext, indexCount);
+	renderShader(deviceContext, indexCount);
 
 	return true;
 }
 
 
-bool ColorShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename) {
+bool ColorShader::initializeShader(ID3D11Device* device, HWND hwnd, const WCHAR* vsFilename, const WCHAR* psFilename) {
 
 	ID3D10Blob* errorMessage;
 	ID3D10Blob* vertexShaderBuffer;
@@ -63,7 +74,7 @@ bool ColorShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFil
 		D3D10_SHADER_ENABLE_STRICTNESS, 0, &vertexShaderBuffer, &errorMessage))) {
 
 		if (errorMessage) {
-			OutputShaderErrorMessage(errorMessage, hwnd, vsFilename);
+			outputShaderErrorMessage(errorMessage, hwnd, vsFilename);
 		} else {
 			MessageBox(hwnd, vsFilename, L"Missing Vertex Shader File", MB_OK);
 		}
@@ -76,7 +87,7 @@ bool ColorShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFil
 		D3D10_SHADER_ENABLE_STRICTNESS, 0, &pixelShaderBuffer, &errorMessage))) {
 
 		if (errorMessage) {
-			OutputShaderErrorMessage(errorMessage, hwnd, psFilename);
+			outputShaderErrorMessage(errorMessage, hwnd, psFilename);
 		} else {
 			MessageBox(hwnd, psFilename, L"Missing Pixel Shader File", MB_OK);
 		}
@@ -143,57 +154,10 @@ bool ColorShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFil
 }
 
 
-void ColorShader::ShutdownShader() {
-	// Release the matrix constant buffer.
-	if (matrixBuffer) {
-		matrixBuffer->Release();
-	}
-
-	// Release the layout.
-	if (layout) {
-		layout->Release();
-	}
-
-	// Release the pixel shader.
-	if (pixelShader) {
-		pixelShader->Release();
-	}
-
-	// Release the vertex shader.
-	if (vertexShader) {
-		vertexShader->Release();
-	}
-
-	return;
-}
 
 
-void ColorShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename) {
-	char* compileErrors;
-	unsigned long long bufferSize, i;
-	ofstream fout;
 
-	compileErrors = (char*) (errorMessage->GetBufferPointer());
-
-	bufferSize = errorMessage->GetBufferSize();
-	fout.open("shader-error.txt");
-
-	// Write out the error message.
-	for (i = 0; i < bufferSize; i++) {
-		fout << compileErrors[i];
-	}
-
-	fout.close();
-
-	errorMessage->Release();
-
-	MessageBox(hwnd, L"Error compiling shader.  Check shader-error.txt for message.", shaderFilename, MB_OK);
-
-	return;
-}
-
-
-bool ColorShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix,
+bool ColorShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix,
 	XMMATRIX viewMatrix, XMMATRIX projectionMatrix) {
 
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -231,7 +195,7 @@ bool ColorShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATR
 }
 
 
-void ColorShader::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount) {
+void ColorShader::renderShader(ID3D11DeviceContext* deviceContext, int indexCount) {
 	
 	deviceContext->IASetInputLayout(layout);
 	deviceContext->VSSetShader(vertexShader, NULL, 0);

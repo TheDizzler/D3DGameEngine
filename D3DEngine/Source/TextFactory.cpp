@@ -138,7 +138,8 @@ TextFactory::TextFactory(ID3D11Device *dev, ID3D11DeviceContext *devCon) {
 }
 
 
-TextFactory::~TextFactory() {}
+TextFactory::~TextFactory() {
+}
 
 
 void TextFactory::draw() {
@@ -234,8 +235,9 @@ void TextFactory::createText(TextLabel *newLabel) {
 
 void TextFactory::release() {
 
-	for (int i = labels.size()-1; i >= 0; --i)
-		delete labels[i];
+	if (labels.size() > 0)
+		for (int i = labels.size() - 1; i >= 0; --i)
+			delete labels[i];
 
 	pTextLayout1->Release();
 	pTextLayout2->Release();

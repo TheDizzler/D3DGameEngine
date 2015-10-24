@@ -14,10 +14,11 @@ namespace Globals {
 	const LPCSTR VERTEX_SHADER_VERSION = "vs_5_0";
 	const LPCSTR PIXEL_SHADER_VERSION = "ps_5_0";
 
-	const bool vsync_enabled = false;
+	const bool vsync_enabled = true;
 	const bool FULL_SCREEN = false;
 
 	const float SCREEN_NEAR = 0.1f;
 	const float SCREEN_DEPTH = 1000.0f;
+
 
 };

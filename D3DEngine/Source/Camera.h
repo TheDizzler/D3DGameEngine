@@ -1,7 +1,7 @@
 #pragma once
 
 #include <DirectXMath.h>
-#include "globals.h"
+//#include "globals.h"
 
 using namespace DirectX;
 

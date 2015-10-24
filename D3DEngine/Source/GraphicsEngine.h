@@ -7,6 +7,8 @@
 #include "Model.h"
 #include "ColorShader.h"
 #include "TextureShader.h"
+#include "LightShader.h"
+#include "LightSource.h"
 
 
 class GraphicsEngine : public D3D {
@@ -31,15 +33,22 @@ public:
 private:
 
 	Camera* camera;
-	Model* model;
+	LightSource* light;
+	Model* model, *modelb;
 
 	ColorShader* colorShader;
 	TextureShader* textureShader;
+	LightShader* lightShader;
 
 	float bgColor[4];
 
 	void testText();
 
 
-
+	const WCHAR* COLOR_VERTEX_SHADER = L"./source/shaders/VertexShader.hlsl";
+	const WCHAR* COLOR_PIXEL_SHADER = L"./source/shaders/PixelShader.hlsl";
+	const WCHAR* TEXTURE_VERTEX_SHADER = L"./source/shaders/TextureVertexShader.hlsl";
+	const WCHAR* TEXTURE_PIXEL_SHADER = L"./source/shaders/TexturePixelShader.hlsl";
+	const WCHAR* LIGHT_VERTEX_SHADER = L"./source/shaders/LightVertexShader.hlsl";
+	const WCHAR* LIGHT_PIXEL_SHADER = L"./source/shaders/LightPixelShader.hlsl";
 };
