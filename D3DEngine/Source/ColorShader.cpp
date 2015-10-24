@@ -14,7 +14,7 @@ ColorShader::~ColorShader() {
 bool ColorShader::initialize(ID3D11Device* device, HWND hwnd) {
 	bool result;
 
-	if (!InitializeShader(device, hwnd, L"VertexShader.hlsl", L"PixelShader.hlsl")) {
+	if (!InitializeShader(device, hwnd, L"./source/shaders/VertexShader.hlsl", L"./source/shaders/PixelShader.hlsl")) {
 		return false;
 	}
 

@@ -26,7 +26,8 @@ public:
 	Model();
 	~Model();
 
-	bool initialize(ID3D11Device*, ID3D11DeviceContext* deviceContext, char* textureFilename);
+	bool initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* textureFilename);
+	bool initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 	void shutdown();
 	/** Puts the model geometry on the video card to prepare it for drawing by the color shader */
 	void render(ID3D11DeviceContext*);
@@ -34,6 +35,8 @@ public:
 	int getIndexCount();
 
 private:
+
+	bool hasTexture;
 
 	ID3D11Buffer *vertexBuffer, *indexBuffer;
 	int vertexCount, indexCount;

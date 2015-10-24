@@ -4,7 +4,7 @@
 //#include "Input.h"
 #include "Globals.h"
 
-LPCTSTR wndClassName = L"My first Game Engine";
+LPCTSTR appName = L"My Second Game Engine";
 HWND hwnd;
 //Input* input;
 
@@ -27,7 +27,13 @@ LRESULT CALLBACK wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 
 
-void releaseResources() {
+void shutdown() {
+
+	ShowCursor(true);
+
+	if (Globals::FULL_SCREEN) {
+		ChangeDisplaySettings(NULL, 0);
+	}
 
 	delete gfxEngine;
 	//delete input;
@@ -42,21 +48,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	if (!initWindow(hInstance, nShowCmd, Globals::WINDOW_WIDTH, Globals::WINDOW_HEIGHT, true)) {
 		MessageBox(0, TEXT("Window Initialization - Failed"), L"Error", MB_OK);
-		releaseResources();
+		shutdown();
 		return 0;
 
 	}
 
 	if (!gfxEngine->initGFXEngine(hInstance, hwnd)) {
 		MessageBox(0, L"Direct3D Initialization Failed", L"Error", MB_OK);
-		releaseResources();
+		shutdown();
 		return 0;
 	}
 
 	/*if (!gfxEngine->initScene(hwnd)) {
-		MessageBox(0, L"Scene Initialization failed", L"Error", MB_OK);
-		releaseResources();
-		return 0;
+	MessageBox(0, L"Scene Initialization failed", L"Error", MB_OK);
+	releaseResources();
+	return 0;
 	}*/
 
 	/*input = new Input();
@@ -67,7 +73,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}*/
 
 	messageLoop(); /* Main program loop */
-	releaseResources();
+	shutdown();
 
 
 	return 0;
@@ -151,16 +157,17 @@ bool initWindow(HINSTANCE hInstance, int showWnd, int width, int height, bool wi
 	WNDCLASSEX wc;
 
 	wc.cbSize = sizeof(WNDCLASSEX);
-	wc.style = CS_HREDRAW | CS_VREDRAW;			// mo' styles http://msdn.microsoft.com/en-us/library/ms633574(VS.85).aspx#class_styles
+	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
 	wc.lpfnWndProc = wndProc;
-	wc.cbClsExtra = NULL;
-	wc.cbWndExtra = NULL;
-	wc.hInstance = hInstance;					// current app
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = hInstance;
 	wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
+	wc.hIconSm = wc.hIcon;
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);	// mo' mouse cursors http://msdn.microsoft.com/en-us/library/ms648391(VS.85).aspx
-	wc.hbrBackground = (HBRUSH) (COLOR_WINDOW + 2);
+	wc.hbrBackground = (HBRUSH) GetStockObject(BLACK_BRUSH);
 	wc.lpszMenuName = NULL;
-	wc.lpszClassName = wndClassName;
+	wc.lpszClassName = appName;
 	wc.hIconSm = LoadIcon(NULL, IDI_WINLOGO);	// taskbar icon
 
 	if (!RegisterClassEx(&wc)) {
@@ -169,41 +176,65 @@ bool initWindow(HINSTANCE hInstance, int showWnd, int width, int height, bool wi
 		return false;
 	}
 
+	// Determine the resolution of the clients desktop screen.
+	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+	DEVMODE dmScreenSettings;
+	int posX, posY;
+
+	if (Globals::FULL_SCREEN) {
+		memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
+		dmScreenSettings.dmSize = sizeof(dmScreenSettings);
+		dmScreenSettings.dmPelsWidth = (unsigned long) screenWidth;
+		dmScreenSettings.dmPelsHeight = (unsigned long) screenHeight;
+		dmScreenSettings.dmBitsPerPel = 32;
+		dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
+		ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
+
+		// Set the position of the window to the top left corner.
+		posX = posY = 0;
+	} else {
+		// If windowed then set it to 800x600 resolution.
+		screenWidth = Globals::WINDOW_WIDTH;
+		screenHeight = Globals::WINDOW_HEIGHT;
+
+		// Place the window in the middle of the screen.
+		posX = (GetSystemMetrics(SM_CXSCREEN) - screenWidth) / 2;
+		posY = (GetSystemMetrics(SM_CYSCREEN) - screenHeight) / 2;
+	}
+
 	hwnd = CreateWindowEx(
-		NULL,							// extended style, check em out here http://msdn.microsoft.com/en-us/library/61fe4bte(VS.71).aspx
-		wndClassName,
-		wndClassName,				// title bar text
-		WS_OVERLAPPEDWINDOW,			// window style, mo' styles http://msdn.microsoft.com/zh-cn/library/czada357.aspx
-		CW_USEDEFAULT, CW_USEDEFAULT,	// top left of window
-		Globals::WINDOW_WIDTH, Globals::WINDOW_HEIGHT,
+		WS_EX_APPWINDOW,
+		appName,
+		appName,				// title bar text
+		WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP,
+		posX, posY,
+		screenWidth, screenHeight,
 		NULL,							// handle to parent window
 		NULL,							// handle to a menu
 		hInstance,						// instance of current program
 		NULL);							// used for MDI client window
 
 	if (!hwnd) {
-
 		MessageBox(NULL, L"Error creating window", L"Error", MB_OK | MB_ICONERROR);
 		return false;
 	}
 
-	ShowWindow(hwnd, showWnd);
+	ShowWindow(hwnd, SW_SHOW);
+	SetForegroundWindow(hwnd);
 	UpdateWindow(hwnd);
 
+	ShowCursor(true);
 
 	return true;
 
 }
 
 
+LRESULT CALLBACK messageHandler(HWND hwnd, UINT umsg, WPARAM wParam, LPARAM lParam) {
+	switch (umsg) {
 
-LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-
-	switch (msg) {
-		case WM_CREATE:
-
-
-			return 0;
 		case WM_KEYDOWN:
 			if (wParam == VK_ESCAPE) {
 				if (MessageBox(0, L"Are you sure you want to exit?",
@@ -211,11 +242,35 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 					DestroyWindow(hwnd);
 			}
 			return 0;
-		case WM_DESTROY:	// top right x button pressed
 
+
+		case WM_KEYUP:
+			// If a key is released then send it to the input object so it can unset the state for that key.
+			//m_Input->KeyUp((unsigned int) wParam);
+			return 0;
+
+
+			// Any other messages send to the default message handler as our application won't make use of them.
+		default:
+			return DefWindowProc(hwnd, umsg, wParam, lParam);
+	}
+}
+
+LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+
+	switch (msg) {
+
+		case WM_DESTROY:	// top right x button pressed
 
 			PostQuitMessage(0);
 			return 0;
+			// Check if the window is being closed.
+		case WM_CLOSE:
+			PostQuitMessage(0);
+			return 0;
+		default:
+			return messageHandler(hwnd, msg, wParam, lParam);
+
 	}
 
 	return DefWindowProc(hwnd, msg, wParam, lParam);

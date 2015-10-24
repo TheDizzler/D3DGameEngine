@@ -15,9 +15,9 @@ namespace Globals {
 	const LPCSTR PIXEL_SHADER_VERSION = "ps_5_0";
 
 	const bool vsync_enabled = false;
-	const bool fullscreen = false;
+	const bool FULL_SCREEN = false;
 
-	const float SCREEN_NEAR = 0.0f;
+	const float SCREEN_NEAR = 0.1f;
 	const float SCREEN_DEPTH = 1000.0f;
 
 };

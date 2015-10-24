@@ -11,7 +11,7 @@ TextureShader::~TextureShader() {
 
 bool TextureShader::initialize(ID3D11Device *device, HWND hwnd) {
 
-	if (!initializeShader(device, hwnd, L"TextureVertexShader.hlsl", L"TexturePixelShader.hlsl"))
+	if (!initializeShader(device, hwnd, L"./source/shaders/TextureVertexShader.hlsl", L"./source/shaders/TexturePixelShader.hlsl"))
 		return false;
 
 	return true;
@@ -33,6 +33,7 @@ bool TextureShader::render(ID3D11DeviceContext *deviceContext, int indexCount,
 	return true;
 }
 
+
 bool TextureShader::initializeShader(ID3D11Device * device, HWND hwnd, WCHAR * vsFilename, WCHAR * psFilename) {
 
 	ID3D10Blob* errorMessage;
@@ -44,11 +45,6 @@ bool TextureShader::initializeShader(ID3D11Device * device, HWND hwnd, WCHAR * v
 
 	D3D11_SAMPLER_DESC samplerDesc;
 
-
-// Initialize the pointers this function will use to null.
-	errorMessage = 0;
-	vertexShaderBuffer = 0;
-	pixelShaderBuffer = 0;
 
 
 		// Compile the vertex shader code.

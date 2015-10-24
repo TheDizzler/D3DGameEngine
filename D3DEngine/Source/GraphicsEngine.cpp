@@ -37,6 +37,11 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 		return false;
 	}
 
+	/*if (!model->initialize(device, deviceContext)) {
+		MessageBox(NULL, L"Error trying to load model", L"ERROR", MB_OK);
+		return false;
+	}*/
+
 	colorShader = new ColorShader();
 	if (!colorShader->initialize(device, hwnd)) {
 		MessageBox(hwnd, L"Error initializing Color Shader", L"ERROR", MB_OK);
@@ -143,8 +148,8 @@ void GraphicsEngine::render() {
 
 	model->render(deviceContext);
 	/*if (!colorShader->render(deviceContext, model->getIndexCount(), worldMatrix, viewMatrix, projectionMatrix))
-		MessageBox(NULL, L"Color Shader malfunction.", L"ERROR", MB_OK);
-	*/
+		MessageBox(NULL, L"Color Shader malfunction.", L"ERROR", MB_OK);*/
+	
 	
 	if (!textureShader->render(deviceContext, model->getIndexCount(), worldMatrix, viewMatrix,
 		projectionMatrix, model->getTexture()))

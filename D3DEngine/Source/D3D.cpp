@@ -12,7 +12,6 @@ bool D3D::initD3D(HINSTANCE hInstance, HWND hwnd) {
 
 
 
-
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
 	D3D_FEATURE_LEVEL featureLevel;
 	ID3D11Texture2D* backBufferPtr;
@@ -51,7 +50,7 @@ bool D3D::initD3D(HINSTANCE hInstance, HWND hwnd) {
 	swapChainDesc.SampleDesc.Quality = 0;
 
 
-	swapChainDesc.Windowed = !Globals::fullscreen;
+	swapChainDesc.Windowed = !Globals::FULL_SCREEN;
 
 
 	swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;

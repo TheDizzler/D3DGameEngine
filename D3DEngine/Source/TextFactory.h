@@ -8,7 +8,7 @@
 #include <D3D11.h>
 #include <comdef.h>
 #include <vector>
-#include "..\FW1FontWrapper\FW1FontWrapper.h"
+#include "..\..\FW1FontWrapper\FW1FontWrapper.h"
 
 
 using namespace std;

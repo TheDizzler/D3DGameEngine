@@ -9,30 +9,44 @@ Model::Model() {
 Model::~Model() {
 }
 
-/** Initialize the vertex and index buffers. */
+/** Initialize without a texture. */
+bool Model::initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext) {
+
+
+	if (!initializeBuffers(device)) {
+		MessageBox(NULL, L"Error intializing Buffers", L"ERROR", MB_OK);
+		return false;
+	}
+
+	hasTexture = false;
+
+	return true;
+
+}
+
+
+/** Initialize with a texture. */
 bool Model::initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* textureFilename) {
 
-	if (!textureFilename) {
-		if (!initializeBuffers(device)) {
-			MessageBox(NULL, L"Error intializing Buffers", L"ERROR", MB_OK);
-			return false;
-		}
-	} else {
-		if (!initializeTextureBuffers(device)) {
-			MessageBox(NULL, L"Error intializing Buffers", L"ERROR", MB_OK);
-			return false;
-		}
-		if (!loadTexture(device, deviceContext, textureFilename)) {
-			MessageBox(NULL, L"Error loading Texture.", L"ERROR", MB_OK);
-			return false;
-		}
+
+	if (!initializeTextureBuffers(device)) {
+		MessageBox(NULL, L"Error intializing Buffers", L"ERROR", MB_OK);
+		return false;
 	}
+	if (!loadTexture(device, deviceContext, textureFilename)) {
+		MessageBox(NULL, L"Error loading Texture.", L"ERROR", MB_OK);
+		return false;
+	}
+
+	hasTexture = true;
+
 	return true;
 }
 
 
 void Model::shutdown() {
-	releaseTexture();
+	if (hasTexture)
+		releaseTexture();
 	shutdownBuffers();
 }
 
@@ -47,7 +61,7 @@ int Model::getIndexCount() {
 }
 
 ID3D11ShaderResourceView* Model::getTexture() {
-	if (texture !=nullptr)
+	if (hasTexture)
 		return texture->getTexture();
 	else
 		return NULL;
@@ -145,7 +159,7 @@ bool Model::initializeTextureBuffers(ID3D11Device* device) {
 }
 
 
-/** Creates Index and Vertex Buffers for Texture less models. */
+/** Creates Index and Vertex Buffers for Texture-less models. */
 bool Model::initializeBuffers(ID3D11Device *device) {
 
 	VertexColor* vertices;
@@ -232,6 +246,7 @@ bool Model::initializeBuffers(ID3D11Device *device) {
 }
 
 
+// Put the vertex and index buffers on the graphics pipeline to prepare them for drawing.
 void Model::renderBuffers(ID3D11DeviceContext *deviceContext) {
 
 	unsigned int stride;
@@ -239,7 +254,7 @@ void Model::renderBuffers(ID3D11DeviceContext *deviceContext) {
 
 
 	// Set vertex buffer stride and offset.
-	if (!texture)
+	if (!hasTexture)
 		stride = sizeof(VertexColor);
 	else
 		stride = sizeof(VertexTexture);
@@ -263,6 +278,7 @@ bool Model::loadTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext
 
 	// Initialize the texture object.
 	if (!texture->initialize(device, deviceContext, filename)) {
+		MessageBox(NULL, L"Error trying to initialize texture", L"Error", MB_OK);
 		return false;
 	}
 
@@ -271,11 +287,9 @@ bool Model::loadTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext
 
 
 void Model::releaseTexture() {
-	// Release the texture object.
-	if (texture) {
+
 		texture->shutdown();
 		delete texture;
-	}
 }
 
 
@@ -285,7 +299,6 @@ void Model::shutdownBuffers() {
 		indexBuffer->Release();
 	}
 
-	// Release the vertex buffer.
 	if (vertexBuffer) {
 		vertexBuffer->Release();
 	}
