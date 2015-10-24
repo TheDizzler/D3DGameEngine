@@ -1,18 +1,15 @@
 #pragma once
 
-#pragma comment(lib, "dxgi.lib")
-#pragma comment (lib, "d3d11.lib")
 
-#include <Windows.h>
-#include <d3d11.h>
-#include <DirectXMath.h>
-
-#include "Globals.h"
+#include "D3D.h"
 #include "TextFactory.h"
+#include "Camera.h"
+#include "Model.h"
+#include "ColorShader.h"
+#include "TextureShader.h"
 
-using namespace DirectX;
 
-class GraphicsEngine {
+class GraphicsEngine : public D3D {
 public:
 
 	TextFactory *textFactory;
@@ -21,53 +18,28 @@ public:
 	GraphicsEngine();
 	~GraphicsEngine();
 
-	bool initD3D(HINSTANCE hInstance, HWND hwnd);
+	bool initGFXEngine(HINSTANCE hInstance, HWND hwnd);
 	void shutdown();
-	
-	void draw();
+
+	void render();
 	//void beginDraw();
 	//void endDraw();
 	void update(double time, int fps);
 
-	void getVideoCardInfo(char* cardName, int& memory);
+
 
 private:
 
-	bool m_vsync_enabled = false;
-	bool fullscreen = false;
+	Camera* camera;
+	Model* model;
 
-	float screenNear = 0;
-	float screenDepth = 1;
-
-	D3D11_INPUT_ELEMENT_DESC layout[4];
-	UINT numLayoutElements;
+	ColorShader* colorShader;
+	TextureShader* textureShader;
 
 	float bgColor[4];
 
-	vector <IDXGIAdapter*> adapters;
-	DXGI_MODE_DESC* displayModeList; // all possible display modes with this monitor/video card combination.
-	int videoCardMemory;
-	char videoCardDescription[128];
-
-	/* Changes backbuffer to front buffer. */
-	IDXGISwapChain* swapChain;
-	/* GPU object */
-	ID3D11Device* device;
-	/* GPU interface */
-	ID3D11DeviceContext* deviceContext;
-	/* The backbuffer that gets drawn to. */
-	ID3D11RenderTargetView* renderTargetView;
-
-	ID3D11Texture2D* depthStencilBuffer;
-	ID3D11DepthStencilState* depthStencilState;
-	ID3D11DepthStencilView* depthStencilView;
-	ID3D11RasterizerState* rasterState;
-
-	XMMATRIX projectionMatrix;
-	XMMATRIX worldMatrix;
-	XMMATRIX orthoMatrix;
+	void testText();
 
 
-	bool getDisplayAdapters(UINT* numerator, UINT* denominator);
 
 };

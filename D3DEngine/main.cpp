@@ -47,7 +47,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	}
 
-	if (!gfxEngine->initD3D(hInstance, hwnd)) {
+	if (!gfxEngine->initGFXEngine(hInstance, hwnd)) {
 		MessageBox(0, L"Direct3D Initialization Failed", L"Error", MB_OK);
 		releaseResources();
 		return 0;
@@ -136,7 +136,7 @@ int messageLoop() {
 
 			//gfxEngine->input->detectInput(frameTime);
 			gfxEngine->update(frameTime, fps);
-			gfxEngine->draw();
+			gfxEngine->render();
 		}
 
 	}
@@ -153,10 +153,10 @@ bool initWindow(HINSTANCE hInstance, int showWnd, int width, int height, bool wi
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.style = CS_HREDRAW | CS_VREDRAW;			// mo' styles http://msdn.microsoft.com/en-us/library/ms633574(VS.85).aspx#class_styles
 	wc.lpfnWndProc = wndProc;
-	wc.cbClsExtra = NULL;						
-	wc.cbWndExtra = NULL;						
+	wc.cbClsExtra = NULL;
+	wc.cbWndExtra = NULL;
 	wc.hInstance = hInstance;					// current app
-	wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);		
+	wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);	// mo' mouse cursors http://msdn.microsoft.com/en-us/library/ms648391(VS.85).aspx
 	wc.hbrBackground = (HBRUSH) (COLOR_WINDOW + 2);
 	wc.lpszMenuName = NULL;
@@ -204,7 +204,13 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
 
 			return 0;
-
+		case WM_KEYDOWN:
+			if (wParam == VK_ESCAPE) {
+				if (MessageBox(0, L"Are you sure you want to exit?",
+					L"Really?", MB_YESNO | MB_ICONQUESTION) == IDYES)
+					DestroyWindow(hwnd);
+			}
+			return 0;
 		case WM_DESTROY:	// top right x button pressed
 
 

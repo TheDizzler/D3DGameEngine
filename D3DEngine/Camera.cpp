@@ -3,77 +3,92 @@
 
 Camera::Camera() {
 
-
+	//positionX = positionY = positionZ = rotationX = rotationY =rotationZ = 0.0f;
 }
 
-void Camera::update(Movement move) {
-
-	rotationMatrix = XMMatrixRotationRollPitchYaw(move.pitch, move.yaw, 0);
-	XMStoreFloat4(&cameraTarget, XMVector3Normalize(XMVector3TransformCoord(defaultForward, rotationMatrix)));
-
-	XMMATRIX rotateYTempMatrix = XMMatrixRotationY(move.pitch);
-
-	cameraRight = XMVector3TransformCoord(defaultRight, rotateYTempMatrix);
-	XMStoreFloat4(&cameraUp, XMVector3TransformCoord(XMLoadFloat4(&cameraUp), rotateYTempMatrix));
-	cameraForward = XMVector3TransformCoord(defaultForward, rotateYTempMatrix);
-
-	XMVECTOR tempPos = XMLoadFloat4(&cameraPos);
-	tempPos += move.leftRight*cameraRight;
-	tempPos += move.backForward*cameraForward;
-	XMStoreFloat4(&cameraPos, tempPos);
-
-	move.leftRight = 0.0f;
-	move.backForward = 0.0f;
-
-	XMVECTOR tempTarget = XMLoadFloat4(&cameraTarget);
-	tempTarget += tempPos;
-	XMStoreFloat4(&cameraTarget, tempTarget);
-
-	XMStoreFloat4x4(&cameraView, XMMatrixLookAtLH(tempPos, tempTarget, XMLoadFloat4(&cameraUp)));
-
+Camera::~Camera() {
 }
 
-void Camera::initScene(XMVECTOR position, XMVECTOR target, XMVECTOR up) {
+void Camera::setPosition(float x, float y, float z) {
+
+	positionX = x;
+	positionY = y;
+	positionZ = z;
+}
+
+void Camera::setRotation(float x, float y, float z) {
+
+	rotationX = x;
+	rotationY = y;
+	rotationZ = z;
+}
+
+XMFLOAT3 Camera::getPosition() {
+	return XMFLOAT3(positionX, positionY, positionZ);
+}
+
+XMFLOAT3 Camera::getRotation() {
+	return XMFLOAT3(rotationX, rotationY, rotationZ);
+}
+
+void Camera::render() {
+
+	XMFLOAT3 up, position, lookAt;
+	XMVECTOR upVector, positionVector, lookAtVector;
+	float yaw, pitch, roll;
+	XMMATRIX rotationMatrix;
 
 
-	XMStoreFloat4(&cameraPos, position);
-	XMStoreFloat4(&cameraTarget, target);
-	XMStoreFloat4(&cameraUp, up);
+	// Setup the vector that points upwards.
+	up.x = 0.0f;
+	up.y = 1.0f;
+	up.z = 0.0f;
 
+	// Load it into a XMVECTOR structure.
+	upVector = XMLoadFloat3(&up);
 
+	// Setup the position of the camera in the world.
+	position.x = positionX;
+	position.y = positionY;
+	position.z = positionZ;
 
-	XMStoreFloat4x4(&cameraView, XMMatrixLookAtLH(XMLoadFloat4(&cameraPos), XMLoadFloat4(&cameraTarget), XMLoadFloat4(&cameraUp)));
-	XMStoreFloat4x4(&cameraProjection, XMMatrixPerspectiveFovLH(0.4f*3.14f,
-		(float) Globals::WINDOW_WIDTH / Globals::WINDOW_HEIGHT, 1.0f, cameraDepth));
+	// Load it into a XMVECTOR structure.
+	positionVector = XMLoadFloat3(&position);
 
+	// Setup where the camera is looking by default.
+	lookAt.x = 0.0f;
+	lookAt.y = 0.0f;
+	lookAt.z = 1.0f;
+
+	// Load it into a XMVECTOR structure.
+	lookAtVector = XMLoadFloat3(&lookAt);
+
+	// Set the yaw (Y axis), pitch (X axis), and roll (Z axis) rotations in radians.
+	pitch = rotationX * 0.0174532925f;
+	yaw = rotationY * 0.0174532925f;
+	roll = rotationZ * 0.0174532925f;
+
+	// Create the rotation matrix from the yaw, pitch, and roll values.
+	rotationMatrix = XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
+
+	// Transform the lookAt and up vector by the rotation matrix so the view is correctly rotated at the origin.
+	lookAtVector = XMVector3TransformCoord(lookAtVector, rotationMatrix);
+	upVector = XMVector3TransformCoord(upVector, rotationMatrix);
+
+	// Translate the rotated camera position to the location of the viewer.
+	lookAtVector = XMVectorAdd(positionVector, lookAtVector);
+
+	// Finally create the view matrix from the three updated vectors.
+	viewMatrix = XMMatrixLookAtLH(positionVector, lookAtVector, upVector);
+}
+
+void Camera::getViewMatrix(XMMATRIX &view) {
+
+	view = viewMatrix;
 }
 
 
-void Camera::setWVP(XMFLOAT4X4 objWorldMatrix) {
+XMMATRIX Camera::getViewMatrix() {
 
-	XMStoreFloat4x4(&wvp, XMLoadFloat4x4(&objWorldMatrix) * getView() * getProjection());
-}
-
-
-XMMATRIX Camera::getWVP() {
-
-	return XMLoadFloat4x4(&wvp) * XMLoadFloat4x4(&cameraView) * XMLoadFloat4x4(&cameraProjection);
-}
-
-
-XMMATRIX Camera::getView() {
-
-	return XMLoadFloat4x4(&cameraView);
-}
-
-
-XMMATRIX Camera::getProjection() {
-
-	return XMLoadFloat4x4(&cameraProjection);
-}
-
-
-XMVECTOR Camera::getPosition() {
-
-	return XMLoadFloat4(&cameraPos);
+	return viewMatrix;
 }
