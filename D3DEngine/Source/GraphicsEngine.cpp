@@ -32,20 +32,20 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 	camera->setPosition(0.0f, 0.0f, -5.0f);
 
 	model = new Model();
-	if (!model->initialize(device, deviceContext, "./Assets/stone01.tga")) {
-		MessageBox(NULL, L"Error trying to load model", L"ERROR", MB_OK);
+	if (!model->initialize(device, "./cube.txt", L"./Assets/seafloor.dds")) {
+		MessageBox(NULL, L"Error trying to initialize model", L"ERROR", MB_OK);
 		return false;
 	}
 
-	modelb = new Model();
-	if (!modelb->initialize(device, deviceContext)) {
-		MessageBox(NULL, L"Error trying to load model", L"ERROR", MB_OK);
+	/*modelb = new Model();
+	if (!modelb->initialize(device, "../cube.txt", L"./assets/seafloor.dds")) {
+		MessageBox(NULL, L"Error trying to initialize model", L"ERROR", MB_OK);
 		return false;
-	}
+	}*/
 	//modelb->setPosition();
 
 	light = new LightSource();
-	light->setDiffuseColor(1.0f, 0.0f, 1.0f, 1.0f);
+	light->setDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	light->setDirection(0.0f, 0.0f, 1.0f);
 
 	colorShader = new ColorShader();

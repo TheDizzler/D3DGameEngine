@@ -3,6 +3,11 @@
 #include <d3d11.h>
 #include <stdio.h>
 
+#include "DDSTextureLoader.h"
+
+using namespace DirectX;
+
+
 class Texture {
 private:
 
@@ -19,6 +24,9 @@ public:
 	Texture();
 	~Texture();
 
+	/** Initialize a texture from .dds file */
+	bool initialize(ID3D11Device* device, WCHAR* filename);
+	/** Initialize a texture from .tga file */
 	bool initialize(ID3D11Device*, ID3D11DeviceContext*, char*);
 	void shutdown();
 
@@ -30,8 +38,8 @@ private:
 	bool loadTarga(char*, int&, int&);
 
 
-	unsigned char* targaData;
-	ID3D11Texture2D* texture;
+	unsigned char* targaData = 0;
+	ID3D11Texture2D* texture = 0;
 	ID3D11ShaderResourceView* textureView;
 };
 

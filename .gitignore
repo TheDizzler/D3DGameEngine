@@ -6,6 +6,7 @@
 *.user
 *.userosscache
 *.sln.docstates
+assimp-3.1.1-win-binaries/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

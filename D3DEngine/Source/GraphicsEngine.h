@@ -34,7 +34,7 @@ private:
 
 	Camera* camera;
 	LightSource* light;
-	Model* model, *modelb;
+	Model* model;
 
 	ColorShader* colorShader;
 	TextureShader* textureShader;

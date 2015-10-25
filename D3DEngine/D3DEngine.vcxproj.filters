@@ -33,6 +33,9 @@
     <Image Include="assets\stone01.tga">
       <Filter>Assets</Filter>
     </Image>
+    <Image Include="assets\seafloor.dds">
+      <Filter>Assets</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Input.cpp">
@@ -117,23 +120,29 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Source\shaders\PixelShader.hlsl">
+    <Text Include="cube.txt">
+      <Filter>Assets</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Source\shaders\LightPixelShader.hlsl">
       <Filter>Resource Files</Filter>
-    </FxCompile>
-    <FxCompile Include="Source\shaders\TexturePixelShader.hlsl">
+    </None>
+    <None Include="Source\shaders\LightVertexShader.hlsl">
       <Filter>Resource Files</Filter>
-    </FxCompile>
-    <FxCompile Include="Source\shaders\TextureVertexShader.hlsl">
+    </None>
+    <None Include="Source\shaders\PixelShader.hlsl">
       <Filter>Resource Files</Filter>
-    </FxCompile>
-    <FxCompile Include="Source\shaders\VertexShader.hlsl">
+    </None>
+    <None Include="Source\shaders\TexturePixelShader.hlsl">
       <Filter>Resource Files</Filter>
-    </FxCompile>
-    <FxCompile Include="Source\shaders\LightPixelShader.hlsl">
+    </None>
+    <None Include="Source\shaders\TextureVertexShader.hlsl">
       <Filter>Resource Files</Filter>
-    </FxCompile>
-    <FxCompile Include="Source\shaders\LightVertexShader.hlsl">
+    </None>
+    <None Include="Source\shaders\VertexShader.hlsl">
       <Filter>Resource Files</Filter>
-    </FxCompile>
+    </None>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

@@ -25,16 +25,19 @@ bool Model::initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 }
 
 
-/** Initialize with a texture. */
-bool Model::initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* textureFilename) {
+bool Model::initialize(ID3D11Device* device, char* modelFilename, WCHAR* textureFilename) {
 
+	if (!loadModel(modelFilename)) {
+		MessageBox(NULL, L"Could not load model data.", L"ERROR", MB_OK);
+		return false;
+	}
 
-	//if (!initializeTextureBuffers(device)) {
 	if (!initializeLightBuffers(device)) {
 		MessageBox(NULL, L"Error intializing Buffers", L"ERROR", MB_OK);
 		return false;
 	}
-	if (!loadTexture(device, deviceContext, textureFilename)) {
+
+	if (!loadTexture(device, textureFilename)) {
 		MessageBox(NULL, L"Error loading Texture.", L"ERROR", MB_OK);
 		return false;
 	}
@@ -45,11 +48,26 @@ bool Model::initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext,
 }
 
 
-void Model::shutdown() {
-	if (hasTexture)
-		releaseTexture();
-	shutdownBuffers();
+/** Initialize with a texture. */
+bool Model::initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* textureFilename) {
+
+
+	//if (!initializeTextureBuffers(device)) {
+	if (!initializeLightBuffers(device)) {
+		MessageBox(NULL, L"Error intializing Buffers", L"ERROR", MB_OK);
+		return false;
+	}
+
+	if (!loadTGATexture(device, deviceContext, textureFilename)) {
+		MessageBox(NULL, L"Error loading Texture.", L"ERROR", MB_OK);
+		return false;
+	}
+
+	hasTexture = true;
+
+	return true;
 }
+
 
 void Model::render(ID3D11DeviceContext *deviceContext) {
 
@@ -77,29 +95,20 @@ bool Model::initializeLightBuffers(ID3D11Device* device) {
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 	HRESULT result;
 
-	vertexCount = 3;
-	indexCount = 3;
-
 	vertices = new VertexLight[vertexCount];
 	indices = new unsigned long[indexCount];
 
-	vertices[0].position = XMFLOAT3(-1.0f, -1.0f, 0.0f);  // Bottom left.
-	vertices[0].texture = XMFLOAT2(0.0f, 1.0f);
-	vertices[0].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
+	for (int i = 0; i < vertexCount; ++i) {
 
-	vertices[1].position = XMFLOAT3(0.0f, 1.0f, 0.0f);  // Top middle.
-	vertices[1].texture = XMFLOAT2(0.5f, 0.0f);
-	vertices[1].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
+		vertices[i].position = XMFLOAT3(model[i].x, model[i].y, model[i].z);
+		vertices[i].texture = XMFLOAT2(model[i].tu, model[i].tv);
+		vertices[i].normal = XMFLOAT3(model[i].nx, model[i].ny, model[i].nz);
 
-	vertices[2].position = XMFLOAT3(1.0f, -1.0f, 0.0f);  // Bottom right.
-	vertices[2].texture = XMFLOAT2(1.0f, 1.0f);
-	vertices[2].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
+		indices[i] = i;
+	}
 
-	indices[0] = 0;  // Bottom left.
-	indices[1] = 1;  // Top middle.
-	indices[2] = 2;  // Bottom right.
 
-	// Set up the description of the static vertex buffer.
+	/**** STATIC VERTEX BUFFER ****/
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vertexBufferDesc.ByteWidth = sizeof(VertexLight) * vertexCount;
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -107,7 +116,6 @@ bool Model::initializeLightBuffers(ID3D11Device* device) {
 	vertexBufferDesc.MiscFlags = 0;
 	vertexBufferDesc.StructureByteStride = 0;
 
-	// Give the subresource structure a pointer to the vertex data.
 	vertexData.pSysMem = vertices;
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
@@ -116,7 +124,7 @@ bool Model::initializeLightBuffers(ID3D11Device* device) {
 		return false;
 	}
 
-	// Set up the description of the static index buffer.
+	/**** STATIC INDEX BUFFER ****/
 	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	indexBufferDesc.ByteWidth = sizeof(unsigned long) * indexCount;
 	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
@@ -124,12 +132,10 @@ bool Model::initializeLightBuffers(ID3D11Device* device) {
 	indexBufferDesc.MiscFlags = 0;
 	indexBufferDesc.StructureByteStride = 0;
 
-	// Give the subresource structure a pointer to the index data.
 	indexData.pSysMem = indices;
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
 
-	// Create the index buffer.
 	if (FAILED(device->CreateBuffer(&indexBufferDesc, &indexData, &indexBuffer))) {
 		return false;
 	}
@@ -147,29 +153,20 @@ bool Model::initializeTextureBuffers(ID3D11Device* device) {
 	unsigned long* indices;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
-	HRESULT result;
-
-	vertexCount = 3;
-	indexCount = 3;
+	
 
 	vertices = new VertexTexture[vertexCount];
 	indices = new unsigned long[indexCount];
 
-	vertices[0].position = XMFLOAT3(-1.0f, -1.0f, 0.0f);  // Bottom left.
-	vertices[0].texture = XMFLOAT2(0.0f, 1.0f);
+	for (int i = 0; i < vertexCount; ++i) {
+		vertices[i].position = XMFLOAT3(model[i].x, model[i].y, model[i].z);
+		vertices[i].texture = XMFLOAT2(model[i].tu, model[i].tv);
+
+		indices[i] = i;
+	}
 
 
-	vertices[1].position = XMFLOAT3(0.0f, 1.0f, 0.0f);  // Top middle.
-	vertices[1].texture = XMFLOAT2(0.5f, 0.0f);
-
-	vertices[2].position = XMFLOAT3(1.0f, -1.0f, 0.0f);  // Bottom right.
-	vertices[2].texture = XMFLOAT2(1.0f, 1.0f);
-
-	indices[0] = 0;  // Bottom left.
-	indices[1] = 1;  // Top middle.
-	indices[2] = 2;  // Bottom right.
-
-					 // Set up the description of the static vertex buffer.
+	/**** STATIC VERTEX BUFFER ****/
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vertexBufferDesc.ByteWidth = sizeof(VertexTexture) * vertexCount;
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -177,18 +174,15 @@ bool Model::initializeTextureBuffers(ID3D11Device* device) {
 	vertexBufferDesc.MiscFlags = 0;
 	vertexBufferDesc.StructureByteStride = 0;
 
-	// Give the subresource structure a pointer to the vertex data.
 	vertexData.pSysMem = vertices;
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
 
-	// Now create the vertex buffer.
-	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &vertexBuffer);
-	if (FAILED(result)) {
+	if (FAILED(device->CreateBuffer(&vertexBufferDesc, &vertexData, &vertexBuffer))) {
 		return false;
 	}
 
-	// Set up the description of the static index buffer.
+	/**** STATIC INDEX BUFFER ****/
 	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	indexBufferDesc.ByteWidth = sizeof(unsigned long) * indexCount;
 	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
@@ -196,23 +190,16 @@ bool Model::initializeTextureBuffers(ID3D11Device* device) {
 	indexBufferDesc.MiscFlags = 0;
 	indexBufferDesc.StructureByteStride = 0;
 
-	// Give the subresource structure a pointer to the index data.
 	indexData.pSysMem = indices;
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
 
-	// Create the index buffer.
-	result = device->CreateBuffer(&indexBufferDesc, &indexData, &indexBuffer);
-	if (FAILED(result)) {
+	if (FAILED(device->CreateBuffer(&indexBufferDesc, &indexData, &indexBuffer))) {
 		return false;
 	}
 
-	// Release the arrays now that the vertex and index buffers have been created and loaded.
 	delete[] vertices;
-	vertices = 0;
-
 	delete[] indices;
-	indices = 0;
 
 	return true;
 }
@@ -226,43 +213,18 @@ bool Model::initializeBuffers(ID3D11Device *device) {
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 
-	/**** TEMP ***/
-	// Set the number of vertices in the vertex array.
-	vertexCount = 3;
-
-	// Set the number of indices in the index array.
-	indexCount = 3;
 
 	// Create the vertex array.
 	vertices = new VertexColor[vertexCount];
-	if (!vertices) {
-		return false;
-	}
-
-	// Create the index array.
 	indices = new unsigned long[indexCount];
-	if (!indices) {
-		return false;
+
+	for (int i = 0; i < vertexCount; ++i) {
+		vertices[i].position = XMFLOAT3(model[i].x, model[i].y, model[i].z);
+		vertices[i].color = XMFLOAT4(model[i].nx, model[i].ny, model[i].nz, 0.5f); // cause why the hell not
 	}
 
-	// Load the vertex array with data.
-	vertices[0].position = XMFLOAT3(-1.0f, -1.0f, 0.0f);  // Bottom left.
-	vertices[0].color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
 
-	vertices[1].position = XMFLOAT3(0.0f, 1.0f, 0.0f);  // Top middle.
-	vertices[1].color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-
-	vertices[2].position = XMFLOAT3(1.0f, -1.0f, 0.0f);  // Bottom right.
-	vertices[2].color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-
-	// Load the index array with data.
-	indices[0] = 0;  // Bottom left.
-	indices[1] = 1;  // Top middle.
-	indices[2] = 2;  // Bottom right.
-
-
-
-					 // Set up the description of the static vertex buffer.
+	/**** STATIC VERTEX BUFFER ****/
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vertexBufferDesc.ByteWidth = sizeof(VertexColor) * vertexCount;
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -270,17 +232,15 @@ bool Model::initializeBuffers(ID3D11Device *device) {
 	vertexBufferDesc.MiscFlags = 0;
 	vertexBufferDesc.StructureByteStride = 0;
 
-	// Give the subresource structure a pointer to the vertex data.
 	vertexData.pSysMem = vertices;
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
 
-	// Now create the vertex buffer.
 	if (FAILED(device->CreateBuffer(&vertexBufferDesc, &vertexData, &vertexBuffer))) {
 		return false;
 	}
 
-	// Set up the description of the static index buffer.
+	/**** STATIC INDEX BUFFER ****/
 	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	indexBufferDesc.ByteWidth = sizeof(unsigned long) * indexCount;
 	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
@@ -288,18 +248,59 @@ bool Model::initializeBuffers(ID3D11Device *device) {
 	indexBufferDesc.MiscFlags = 0;
 	indexBufferDesc.StructureByteStride = 0;
 
-	// Give the subresource structure a pointer to the index data.
 	indexData.pSysMem = indices;
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
 
-	// Create the index buffer.
 	if (FAILED(device->CreateBuffer(&indexBufferDesc, &indexData, &indexBuffer))) {
 		return false;
 	}
 
 	delete[] vertices;
 	delete[] indices;
+
+	return true;
+}
+
+
+bool Model::loadModel(char* filename) {
+
+	ifstream fin;
+	char input;
+	int i;
+
+	fin.open(filename);
+
+	if (fin.fail()) {
+		return false;
+	}
+
+	// Find Vertex Count
+	fin.get(input);
+	while (input != ':') {
+		fin.get(input);
+	}
+
+	fin >> vertexCount;
+	indexCount = vertexCount;
+
+	model = new ModelType[vertexCount];
+
+	// start reading vertex data
+	fin.get(input);
+	while (input != ':') {
+		fin.get(input);
+	}
+	fin.get(input);
+	fin.get(input);
+
+	for (i = 0; i<vertexCount; i++) {
+		fin >> model[i].x >> model[i].y >> model[i].z;
+		fin >> model[i].tu >> model[i].tv;
+		fin >> model[i].nx >> model[i].ny >> model[i].nz;
+	}
+
+	fin.close();
 
 	return true;
 }
@@ -326,7 +327,21 @@ void Model::renderBuffers(ID3D11DeviceContext *deviceContext) {
 }
 
 
-bool Model::loadTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* filename) {
+bool Model::loadTexture(ID3D11Device* device, WCHAR* filename) {
+
+
+	texture = new Texture;
+
+	// Initialize the texture object.
+	if (!texture->initialize(device, filename)) {
+		MessageBox(NULL, L"Error trying to initialize texture", L"Error", MB_OK);
+		return false;
+	}
+
+	return true;
+}
+
+bool Model::loadTGATexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* filename) {
 
 
 	texture = new Texture;
@@ -341,14 +356,13 @@ bool Model::loadTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext
 }
 
 
-void Model::releaseTexture() {
 
+void Model::shutdown() {
+
+	if (hasTexture) {
 		texture->shutdown();
 		delete texture;
-}
-
-
-void Model::shutdownBuffers() {
+	}
 
 	if (indexBuffer) {
 		indexBuffer->Release();
@@ -357,4 +371,7 @@ void Model::shutdownBuffers() {
 	if (vertexBuffer) {
 		vertexBuffer->Release();
 	}
+
+	if (model)
+		delete[] model;
 }

@@ -2,6 +2,7 @@
 
 
 Texture::Texture() {
+
 }
 
 
@@ -9,7 +10,19 @@ Texture::Texture() {
 Texture::~Texture() {
 }
 
+/** Initialize a texture from .dds file */
+bool Texture::initialize(ID3D11Device* device, WCHAR* filename) {
+	
+	
+	if (FAILED(CreateDDSTextureFromFile(device, filename, NULL, &textureView))) {
+		MessageBox(NULL, L"Failed to D3DX11CreateShaderResourceViewFromFile", L"ERROR", MB_OK);
+		return false;
+	}
 
+	return true;
+}
+
+/** Initialize a texture from .tga file */
 bool Texture::initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* filename) {
 	bool result;
 	int height, width;
@@ -74,25 +87,21 @@ bool Texture::initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContex
 
 
 void Texture::shutdown() {
-	// Release the texture view resource.
+	
+
 	if (textureView) {
 		textureView->Release();
-		textureView = 0;
 	}
 
-	// Release the texture.
 	if (texture) {
 		texture->Release();
-		texture = 0;
 	}
 
-	// Release the targa data.
 	if (targaData) {
 		delete[] targaData;
-		targaData = 0;
+
 	}
 
-	return;
 }
 
 
@@ -183,7 +192,6 @@ bool Texture::loadTarga(char* filename, int& height, int& width) {
 
 	// Release the targa image data now that it was copied into the destination array.
 	delete[] targaImage;
-	targaImage = 0;
 
 	return true;
 }
