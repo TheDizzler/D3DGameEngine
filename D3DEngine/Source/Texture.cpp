@@ -10,6 +10,20 @@ Texture::Texture() {
 Texture::~Texture() {
 }
 
+
+/** Initialize a texture from a Mesh. */
+bool Texture::initialize(ID3D11Device* device, const wchar_t* filename) {
+
+	// ???Don't know how load texture in this case!!
+	if (FAILED(CreateWICTextureFromFile(device, filename, NULL, &textureView, (size_t)NULL))) {
+		MessageBox(NULL, L"Failed to D3DX11CreateShaderResourceViewFromFile", L"ERROR", MB_OK);
+		return false;
+	}
+
+	return true;
+}
+
+
 /** Initialize a texture from .dds file */
 bool Texture::initialize(ID3D11Device* device, WCHAR* filename) {
 	

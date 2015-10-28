@@ -4,6 +4,8 @@
 #include <directxmath.h>
 #include <fstream>
 
+
+
 #include "Texture.h"
 
 using namespace DirectX;
@@ -40,6 +42,8 @@ public:
 	Model();
 	~Model();
 
+	
+
 	bool initialize(ID3D11Device* device, char* modelFilename, WCHAR* textureFilename);
 	bool initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* textureFilename);
 	bool initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
@@ -67,8 +71,6 @@ private:
 	bool loadTGATexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* textureFilename);
 	bool loadModel(char* modelFilename);
 	bool loadTexture(ID3D11Device* device, WCHAR* textureFilename);
-
-	void renderBuffers(ID3D11DeviceContext* deviceContext);
 
 
 	

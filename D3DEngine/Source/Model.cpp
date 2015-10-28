@@ -9,6 +9,7 @@ Model::Model() {
 Model::~Model() {
 }
 
+
 /** Initialize without a texture. */
 bool Model::initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext) {
 
@@ -68,12 +69,6 @@ bool Model::initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext,
 	return true;
 }
 
-
-void Model::render(ID3D11DeviceContext *deviceContext) {
-
-	renderBuffers(deviceContext);
-
-}
 
 int Model::getIndexCount() {
 	return indexCount;
@@ -153,7 +148,7 @@ bool Model::initializeTextureBuffers(ID3D11Device* device) {
 	unsigned long* indices;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
-	
+
 
 	vertices = new VertexTexture[vertexCount];
 	indices = new unsigned long[indexCount];
@@ -294,7 +289,7 @@ bool Model::loadModel(char* filename) {
 	fin.get(input);
 	fin.get(input);
 
-	for (i = 0; i<vertexCount; i++) {
+	for (i = 0; i < vertexCount; i++) {
 		fin >> model[i].x >> model[i].y >> model[i].z;
 		fin >> model[i].tu >> model[i].tv;
 		fin >> model[i].nx >> model[i].ny >> model[i].nz;
@@ -307,7 +302,7 @@ bool Model::loadModel(char* filename) {
 
 
 // Put the vertex and index buffers on the graphics pipeline to prepare them for drawing.
-void Model::renderBuffers(ID3D11DeviceContext *deviceContext) {
+void Model::render(ID3D11DeviceContext *deviceContext) {
 
 	unsigned int stride;
 	unsigned int offset;

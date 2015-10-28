@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Shader.h"
+#include "ShaderBase.h"
 
 /** A shader class for creating geometry with no textures. */
-class ColorShader : public Shader {
+class ColorShader : public ShaderBase {
 public:
 	ColorShader();
 	~ColorShader();

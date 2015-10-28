@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Shader.h"
+#include "ShaderBase.h"
 
 
-class LightShader : public Shader {
+class LightShader : public ShaderBase {
 private:
 
 	struct LightBufferType {

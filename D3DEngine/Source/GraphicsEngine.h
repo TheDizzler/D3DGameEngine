@@ -5,12 +5,14 @@
 #include "TextFactory.h"
 #include "Camera.h"
 #include "Model.h"
+//#include "Mesh.h"
 #include "ColorShader.h"
 #include "TextureShader.h"
 #include "LightShader.h"
 #include "LightSource.h"
 
-
+/** Container for all graphical properties. For now it is the whole engine, including gameplay
+	elements but this will eventually be changed. */
 class GraphicsEngine : public D3D {
 public:
 

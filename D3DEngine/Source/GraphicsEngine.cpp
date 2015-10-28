@@ -37,6 +37,9 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 		return false;
 	}
 
+	//Mesh* mesh = new Mesh();
+	//mesh->loadTest("../assets/aphrodite/aphroditegirl.obj");
+
 	/*modelb = new Model();
 	if (!modelb->initialize(device, "../cube.txt", L"./assets/seafloor.dds")) {
 		MessageBox(NULL, L"Error trying to initialize model", L"ERROR", MB_OK);
@@ -67,7 +70,7 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 		return false;
 	}
 
-
+	
 	testText();
 
 

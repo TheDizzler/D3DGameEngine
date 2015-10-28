@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "DDSTextureLoader.h"
+#include "WICTextureLoader.h"
 
 using namespace DirectX;
 
@@ -24,6 +25,8 @@ public:
 	Texture();
 	~Texture();
 
+	/** Initialize a texture from a Mesh. */
+	bool initialize(ID3D11Device* device, const wchar_t* filepath);
 	/** Initialize a texture from .dds file */
 	bool initialize(ID3D11Device* device, WCHAR* filename);
 	/** Initialize a texture from .tga file */

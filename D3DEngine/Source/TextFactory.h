@@ -1,8 +1,5 @@
-/* Helper class to take advantage of FW1FontWrapper capabilities.
-	Written by Tristan Gillon. */
 #pragma once
 
-//#pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "FW1FontWrapper.lib")
 
 #include <D3D11.h>
@@ -16,6 +13,8 @@ using namespace std;
 //const wchar_t* fonts[] = {L"Arial", L"Courier New", L"MS Sans Serif", L"Times New Roman"};
 
 
+/** Helper class to simplify and take advantage of FW1FontWrapper capabilities.
+Written by Tristan Gillon. */
 class TextLabel {
 public:
 	wstring text;

@@ -75,8 +75,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>D:\D3DEngine\assimp-3.1.1-win-binaries\include\;C:\Users\Comrade\Desktop\Dropbox\VSWorkSpace\D3DEngine\FW1FontWrapper;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\D3DEngine\assimp-3.1.1-win-binaries\lib64;C:\Users\Comrade\Desktop\Dropbox\VSWorkSpace\D3DEngine\FW1FontWrapper;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\D3DEngine\D3DEngine\assimp\include;C:\Users\Comrade\Desktop\Dropbox\VSWorkSpace\D3DEngine\FW1FontWrapper;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Comrade\Desktop\Dropbox\VSWorkSpace\D3DEngine\FW1FontWrapper;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -110,6 +110,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>D:\D3DEngine\D3DEngine\Assimp\lib\assimpd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -159,8 +160,9 @@
     <ClCompile Include="Source\LightShader.cpp" />
     <ClCompile Include="source\LightSource.cpp" />
     <ClCompile Include="Source\main.cpp" />
+    <ClCompile Include="Source\Mesh.cpp" />
     <ClCompile Include="Source\Model.cpp" />
-    <ClCompile Include="Source\Shader.cpp" />
+    <ClCompile Include="Source\ShaderBase.cpp" />
     <ClCompile Include="Source\TextFactory.cpp" />
     <ClCompile Include="Source\Texture.cpp" />
     <ClCompile Include="Source\TextureShader.cpp" />
@@ -174,8 +176,9 @@
     <ClInclude Include="Source\Input.h" />
     <ClInclude Include="Source\LightShader.h" />
     <ClInclude Include="Source\LightSource.h" />
+    <ClInclude Include="Source\Mesh.h" />
     <ClInclude Include="Source\Model.h" />
-    <ClInclude Include="Source\Shader.h" />
+    <ClInclude Include="Source\ShaderBase.h" />
     <ClInclude Include="Source\TextFactory.h" />
     <ClInclude Include="Source\Texture.h" />
     <ClInclude Include="Source\TextureShader.h" />

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Shader.h"
+#include "ShaderBase.h"
 
-
-class TextureShader  : public Shader {
+/** Probably obsolete now. This is the same as LightShader but without the lighting effects. */
+class TextureShader  : public ShaderBase {
 public:
 	TextureShader();
 	~TextureShader();
