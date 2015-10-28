@@ -37,8 +37,8 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 		return false;
 	}
 
-	//Mesh* mesh = new Mesh();
-	//mesh->loadTest("../assets/aphrodite/aphroditegirl.obj");
+	Mesh* mesh = new Mesh();
+	mesh->loadTest("./assets/aphrodite/aphroditegirl.obj");
 
 	/*modelb = new Model();
 	if (!modelb->initialize(device, "../cube.txt", L"./assets/seafloor.dds")) {

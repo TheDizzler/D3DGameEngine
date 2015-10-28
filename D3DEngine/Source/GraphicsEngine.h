@@ -5,7 +5,7 @@
 #include "TextFactory.h"
 #include "Camera.h"
 #include "Model.h"
-//#include "Mesh.h"
+#include "Mesh.h"
 #include "ColorShader.h"
 #include "TextureShader.h"
 #include "LightShader.h"

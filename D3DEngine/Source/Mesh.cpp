@@ -41,10 +41,11 @@ bool Mesh::loadTest(const string fileName) {
 		}
 	}*/
 
-	string test = string("numVerts: ") + string("" + numVerts)
-		+ string(" numIndices: ") + string("" + numIndices);
-	std::wstring wtest;
-	for (int i = 0; i < test.length(); ++i)
+	stringstream sstest;
+	sstest << "numVerts: " <<  numVerts << " numIndices: " << numIndices;
+	string test = sstest.str();
+	wstring wtest;
+	for (int i = 0; i < test.size(); ++i)
 		wtest += wchar_t(test[i]);
 	MessageBox(NULL, wtest.c_str(), L"Seems ok here", MB_OK);
 

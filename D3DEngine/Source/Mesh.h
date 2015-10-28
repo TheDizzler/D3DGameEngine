@@ -4,6 +4,7 @@
 #include <d3d11.h>
 #include <directxmath.h>
 #include <vector>
+#include <sstream>
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
