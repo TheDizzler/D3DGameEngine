@@ -16,8 +16,8 @@
 class GraphicsEngine : public D3D {
 public:
 
-	TextFactory *textFactory;
-	TextLabel *timer;
+	TextFactory *textFactory = 0;
+	TextLabel *timer = 0;
 
 	GraphicsEngine();
 	~GraphicsEngine();
@@ -34,13 +34,14 @@ public:
 
 private:
 
-	Camera* camera;
-	LightSource* light;
-	Model* model;
+	Camera* camera = 0;
+	LightSource* light = 0;
+	Model* model = 0;
+	Mesh* mesh = 0;
 
-	ColorShader* colorShader;
-	TextureShader* textureShader;
-	LightShader* lightShader;
+	ColorShader* colorShader = 0;
+	TextureShader* textureShader = 0;
+	LightShader* lightShader = 0;
 
 	float bgColor[4];
 

@@ -20,26 +20,13 @@ void LightShader::shutdown() {
 	vertexShader->Release();
 }
 
-bool LightShader::render(ID3D11DeviceContext *deviceContext, int indexCount,
-	XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture,
-	XMFLOAT3 lightDirection, XMFLOAT4 diffuseColor) {
-
-	if (!setShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture,
-		lightDirection, diffuseColor)) {
-		return false;
-	}
-
-	renderShader(deviceContext, indexCount);
-	return true;
-}
-
 
 bool LightShader::initializeShader(ID3D11Device * device, HWND hwnd, const WCHAR * vsFilename, const WCHAR * psFilename) {
 
 	ID3D10Blob* errorMessage;
 	ID3D10Blob* vertexShaderBuffer;
 	ID3D10Blob* pixelShaderBuffer;
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[4];
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
@@ -109,6 +96,15 @@ bool LightShader::initializeShader(ID3D11Device * device, HWND hwnd, const WCHAR
 	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[2].InstanceDataStepRate = 0;
 
+	// Tangent layout
+	polygonLayout[3].SemanticName = "TANGENT";
+	polygonLayout[3].SemanticIndex = 0;
+	polygonLayout[3].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[3].InputSlot = 0;
+	polygonLayout[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[3].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[3].InstanceDataStepRate = 0;
+
 	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
 	if (FAILED(device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(),
@@ -170,6 +166,20 @@ bool LightShader::initializeShader(ID3D11Device * device, HWND hwnd, const WCHAR
 }
 
 
+bool LightShader::render(ID3D11DeviceContext *deviceContext, int indexCount,
+	XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture,
+	XMFLOAT3 lightDirection, XMFLOAT4 diffuseColor) {
+
+	if (!setShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture,
+		lightDirection, diffuseColor)) {
+		return false;
+	}
+
+	renderShader(deviceContext, indexCount);
+	return true;
+}
+
+
 bool LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix,
 	XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture,
 	XMFLOAT3 lightDirection, XMFLOAT4 diffuseColor) {
@@ -223,7 +233,6 @@ void LightShader::renderShader(ID3D11DeviceContext* deviceContext, int indexCoun
 
 	deviceContext->IASetInputLayout(layout);
 
-	// Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(vertexShader, NULL, 0);
 	deviceContext->PSSetShader(pixelShader, NULL, 0);
 

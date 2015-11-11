@@ -7,14 +7,23 @@ TextFactory::TextFactory(ID3D11Device *dev, ID3D11DeviceContext *devCon) {
 	device = dev;
 	deviceContext = devCon;
 
-	HRESULT hResult = FW1CreateFactory(FW1_VERSION, &pFW1Factory);
+	if (FAILED(FW1CreateFactory(FW1_VERSION, &pFW1Factory))) {
+		MessageBox(NULL, L"Unable to create FontWrapperFactory", L"TextFactory ERROR", MB_OK);
+		return;
+	}
 
-	hResult = pFW1Factory->CreateFontWrapper(device, L"Arial", &pFontWrapper);
+	if (FAILED(pFW1Factory->CreateFontWrapper(device, L"Arial", &pFontWrapper))) {
+		MessageBox(NULL, L"Unable to create FontWrapper", L"TextFactory ERROR", MB_OK);
+		return;
+	}
 
-	hResult = pFontWrapper->GetDWriteFactory(&pDWriteFactory);
+	if (FAILED(pFontWrapper->GetDWriteFactory(&pDWriteFactory))) {
+		MessageBox(NULL, L"Unable to create WriteFactory", L"TextFactory ERROR", MB_OK);
+		return;
+	}
 
 	// Create the default DirectWrite text format to base layouts on
-	hResult = pDWriteFactory->CreateTextFormat(
+	if (FAILED(pDWriteFactory->CreateTextFormat(
 		L"Arial",
 		NULL,
 		DWRITE_FONT_WEIGHT_NORMAL,
@@ -23,22 +32,37 @@ TextFactory::TextFactory(ID3D11Device *dev, ID3D11DeviceContext *devCon) {
 		16.0f,
 		L"",
 		&pTextFormat
-		);
+		))) {
+
+		MessageBox(NULL, L"Unable to create TextFormat", L"TextFactory ERROR", MB_OK);
+		return;
+	}
+
 
 	// Create a text layout for a string
 	const WCHAR str1[] = L"ANCIENT GREEK MYTHOLOGY";
-	pDWriteFactory->CreateTextLayout(
+	if (FAILED(pDWriteFactory->CreateTextLayout(
 		str1,
 		sizeof(str1) / sizeof(str1[0]),
 		pTextFormat,
 		0.0f,
 		0.0f,
 		&pTextLayout1
-		);
+		))) {
+
+		MessageBox(NULL, L"Unable to create TextLayout", L"TextFactory ERROR", MB_OK);
+		return;
+	}
 
 	// No word wrapping
-	pTextLayout1->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
-	pTextLayout1->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	if (FAILED(pTextLayout1->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP))) {
+		MessageBox(NULL, L"Unable to SetWordWrapping", L"TextFactory ERROR", MB_OK);
+		return;
+	}
+	if (FAILED(pTextLayout1->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER))) {
+		MessageBox(NULL, L"Unable to SetTextAlignment", L"TextFactory ERROR", MB_OK);
+		return;
+	}
 
 	// Set up typography features
 	IDWriteTypography *pTypography;
@@ -234,6 +258,7 @@ void TextFactory::createText(TextLabel *newLabel) {
 
 
 void TextFactory::release() {
+
 
 	if (labels.size() > 0)
 		for (int i = labels.size() - 1; i >= 0; --i)

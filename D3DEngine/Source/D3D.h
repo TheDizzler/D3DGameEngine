@@ -18,6 +18,7 @@ using namespace std;
 
 class D3D {
 public:
+
 	D3D();
 	~D3D();
 
@@ -35,7 +36,6 @@ protected:
 	ID3D11DeviceContext* deviceContext;
 	/* The backbuffer that gets drawn to. */
 	ID3D11RenderTargetView* renderTargetView;
-
 
 
 	ID3D11Texture2D* depthStencilBuffer;
@@ -60,6 +60,7 @@ protected:
 	D3D11_INPUT_ELEMENT_DESC layout[4];
 	UINT numLayoutElements;
 
+	bool initializeRasterizer();
 	bool getDisplayAdapters(UINT* numerator, UINT* denominator);
 	void getVideoCardInfo(char* cardName, int& memory);
 

@@ -22,13 +22,14 @@ private:
 
 	struct VertexTexture {
 		XMFLOAT3 position;
-		XMFLOAT2 texture;
+		XMFLOAT2 textureCoords;
 	};
 
 	struct VertexLight {
 		XMFLOAT3 position;
-		XMFLOAT2 texture;
+		XMFLOAT2 textureCoords;
 		XMFLOAT3 normal;
+		XMFLOAT3 tangent;
 	};
 
 	struct ModelType {
@@ -67,7 +68,7 @@ private:
 	bool initializeBuffers(ID3D11Device* device);
 	bool initializeLightBuffers(ID3D11Device* device);
 	bool initializeTextureBuffers(ID3D11Device* device);
-	/** Load Texture for old statis model. */
+	/** Load Texture for old static model. */
 	bool loadTGATexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* textureFilename);
 	bool loadModel(char* modelFilename);
 	bool loadTexture(ID3D11Device* device, WCHAR* textureFilename);

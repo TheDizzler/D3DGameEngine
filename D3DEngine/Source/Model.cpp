@@ -96,7 +96,7 @@ bool Model::initializeLightBuffers(ID3D11Device* device) {
 	for (int i = 0; i < vertexCount; ++i) {
 
 		vertices[i].position = XMFLOAT3(model[i].x, model[i].y, model[i].z);
-		vertices[i].texture = XMFLOAT2(model[i].tu, model[i].tv);
+		vertices[i].textureCoords = XMFLOAT2(model[i].tu, model[i].tv);
 		vertices[i].normal = XMFLOAT3(model[i].nx, model[i].ny, model[i].nz);
 
 		indices[i] = i;
@@ -155,7 +155,7 @@ bool Model::initializeTextureBuffers(ID3D11Device* device) {
 
 	for (int i = 0; i < vertexCount; ++i) {
 		vertices[i].position = XMFLOAT3(model[i].x, model[i].y, model[i].z);
-		vertices[i].texture = XMFLOAT2(model[i].tu, model[i].tv);
+		vertices[i].textureCoords = XMFLOAT2(model[i].tu, model[i].tv);
 
 		indices[i] = i;
 	}
@@ -342,7 +342,7 @@ bool Model::loadTGATexture(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 	texture = new Texture;
 
 	// Initialize the texture object.
-	if (!texture->initialize(device, deviceContext, filename)) {
+	if (!texture->initializeFromTGA(device, deviceContext, filename)) {
 		MessageBox(NULL, L"Error trying to initialize texture", L"Error", MB_OK);
 		return false;
 	}

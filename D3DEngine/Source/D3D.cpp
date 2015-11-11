@@ -83,7 +83,7 @@ bool D3D::initD3D(HINSTANCE hInstance, HWND hwnd) {
 	D3D11_TEXTURE2D_DESC depthBufferDesc;
 	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
 	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
-	D3D11_RASTERIZER_DESC rasterDesc;
+
 
 	ZeroMemory(&depthBufferDesc, sizeof(depthBufferDesc));
 	depthBufferDesc.Width = Globals::WINDOW_WIDTH;
@@ -148,23 +148,12 @@ bool D3D::initD3D(HINSTANCE hInstance, HWND hwnd) {
 
 
 	/**** INITIALIZE RASTERIZER  ****/
-	rasterDesc.AntialiasedLineEnable = false;
-	rasterDesc.CullMode = D3D11_CULL_BACK;
-	rasterDesc.DepthBias = 0;
-	rasterDesc.DepthBiasClamp = 0.0f;
-	rasterDesc.DepthClipEnable = true;
-	rasterDesc.FillMode = D3D11_FILL_SOLID;
-	rasterDesc.FrontCounterClockwise = false;
-	rasterDesc.MultisampleEnable = false;
-	rasterDesc.ScissorEnable = false;
-	rasterDesc.SlopeScaledDepthBias = 0.0f;
-
-	if (FAILED(device->CreateRasterizerState(&rasterDesc, &rasterState))) {
+	if (!initializeRasterizer()) {
 		MessageBox(hwnd, L"Could not create rasterizer state.", L"ERROR", MB_OK);
 		return false;
 	}
 
-	deviceContext->RSSetState(rasterState);
+	
 
 	/**** INITIALIZE VIEWPORT  ****/
 	D3D11_VIEWPORT viewport;
@@ -193,6 +182,40 @@ bool D3D::initD3D(HINSTANCE hInstance, HWND hwnd) {
 	return true;
 }
 
+
+bool D3D::initializeRasterizer() {
+
+	
+	D3D11_RASTERIZER_DESC rasterDesc;
+	ZeroMemory(&rasterDesc, sizeof(D3D11_RASTERIZER_DESC));
+
+	/* The Default Rasterizer */
+	rasterDesc.AntialiasedLineEnable = false;
+	rasterDesc.DepthBias = 0;
+	rasterDesc.DepthBiasClamp = 0.0f;
+	rasterDesc.DepthClipEnable = true;
+	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.CullMode = D3D11_CULL_BACK;
+	rasterDesc.FrontCounterClockwise = false;
+	rasterDesc.MultisampleEnable = false;
+	rasterDesc.ScissorEnable = false;
+	rasterDesc.SlopeScaledDepthBias = 0.0f;
+
+
+	/* Wire Frame Rasterizer */
+	//rasterDesc.FillMode = D3D11_FILL_WIREFRAME;
+	//rasterDesc.CullMode = D3D11_CULL_BACK;
+
+
+	if (FAILED(device->CreateRasterizerState(&rasterDesc, &rasterState)))
+		return false;
+
+	deviceContext->RSSetState(rasterState);
+
+	return true;
+
+
+}
 
 bool D3D::getDisplayAdapters(UINT* numerator, UINT* denominator) {
 

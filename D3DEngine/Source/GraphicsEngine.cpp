@@ -31,15 +31,17 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 	camera = new Camera();
 	camera->setPosition(0.0f, 0.0f, -5.0f);
 
-	model = new Model();
+	/*model = new Model();
 	if (!model->initialize(device, "./cube.txt", L"./Assets/seafloor.dds")) {
 		MessageBox(NULL, L"Error trying to initialize model", L"ERROR", MB_OK);
 		return false;
+	}*/
+
+	mesh = new Mesh();
+	if (!mesh->loadMesh(device, "./assets/house/house.obj")) {
+		MessageBox(NULL, L"Error trying to initialize mesh", L"ERROR", MB_OK);
+		return false;
 	}
-
-	Mesh* mesh = new Mesh();
-	mesh->loadTest("./assets/aphrodite/aphroditegirl.obj");
-
 	/*modelb = new Model();
 	if (!modelb->initialize(device, "../cube.txt", L"./assets/seafloor.dds")) {
 		MessageBox(NULL, L"Error trying to initialize model", L"ERROR", MB_OK);
@@ -70,7 +72,7 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 		return false;
 	}
 
-	
+
 	testText();
 
 
@@ -151,7 +153,7 @@ void GraphicsEngine::update(double time, int fps) {
 	if (rotation > 360.0f) {
 		rotation -= 360.0f;
 	}
-	
+
 	worldMatrix = XMMatrixRotationY(rotation);
 
 }
@@ -174,12 +176,18 @@ void GraphicsEngine::render() {
 	if (!colorShader->render(deviceContext, modelb->getIndexCount(), worldMatrix, viewMatrix, projectionMatrix))
 		MessageBox(NULL, L"Color Shader malfunction.", L"ERROR", MB_OK);*/
 
-	model->render(deviceContext);
+	//model->render(deviceContext);
+
 	/*if (!textureShader->render(deviceContext, model->getIndexCount(), worldMatrix, viewMatrix,
 		projectionMatrix, model->getTexture()))
 		MessageBox(NULL, L"Texture Shader malfunction.", L"ERROR", MB_OK);*/
-	if (!lightShader->render(deviceContext, model->getIndexCount(), worldMatrix, viewMatrix,
+	/*if (!lightShader->render(deviceContext, model->getIndexCount(), worldMatrix, viewMatrix,
 		projectionMatrix, model->getTexture(), light->direction, light->diffuseColor))
+		MessageBox(NULL, L"Light Shader malfunction.", L"ERROR", MB_OK);*/
+
+	mesh->render(deviceContext);
+	if (!lightShader->render(deviceContext, mesh->getIndexCount(), worldMatrix, viewMatrix,
+		projectionMatrix, NULL, light->direction, light->diffuseColor))
 		MessageBox(NULL, L"Light Shader malfunction.", L"ERROR", MB_OK);
 
 	// This IF check is being run every frame and could be avoided
@@ -210,12 +218,19 @@ void GraphicsEngine::render() {
 
 void GraphicsEngine::shutdown() {
 
-	delete light;
-	lightShader->shutdown();
-	textureShader->shutdown();
-	colorShader->shutdown();
-	model->shutdown();
-	delete camera;
+	if (light)
+		delete light;
+	if (lightShader)
+		lightShader->shutdown();
+	if (textureShader)
+		textureShader->shutdown();
+	if (colorShader)
+		colorShader->shutdown();
+		//model->shutdown();
+	if (mesh)
+		delete mesh;
+	if (camera)
+		delete camera;
 
 	if (textFactory)
 		textFactory->release();

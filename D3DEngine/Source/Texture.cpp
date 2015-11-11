@@ -11,21 +11,25 @@ Texture::~Texture() {
 }
 
 
-/** Initialize a texture from a Mesh. */
+/** Initialize a texture from non-DDS files. */
 bool Texture::initialize(ID3D11Device* device, const wchar_t* filename) {
 
-	// ???Don't know how load texture in this case!!
-	if (FAILED(CreateWICTextureFromFile(device, filename, NULL, &textureView, (size_t)NULL))) {
+	if (FAILED(CreateWICTextureFromFile(device, filename, &texture, &textureView))) {
 		MessageBox(NULL, L"Failed to D3DX11CreateShaderResourceViewFromFile", L"ERROR", MB_OK);
 		return false;
 	}
+	
+	/*texture->
+
+	D3D11_TEXTURE2D_DESC desc;
+	texture2d->GetDesc(&desc);*/
 
 	return true;
 }
 
 
 /** Initialize a texture from .dds file */
-bool Texture::initialize(ID3D11Device* device, WCHAR* filename) {
+bool Texture::initializeFromDDS(ID3D11Device* device, WCHAR* filename) {
 	
 	
 	if (FAILED(CreateDDSTextureFromFile(device, filename, NULL, &textureView))) {
@@ -37,7 +41,7 @@ bool Texture::initialize(ID3D11Device* device, WCHAR* filename) {
 }
 
 /** Initialize a texture from .tga file */
-bool Texture::initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* filename) {
+bool Texture::initializeFromTGA(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* filename) {
 	bool result;
 	int height, width;
 	D3D11_TEXTURE2D_DESC textureDesc;
@@ -66,7 +70,7 @@ bool Texture::initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContex
 	textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
 	// Create the empty texture.
-	hResult = device->CreateTexture2D(&textureDesc, NULL, &texture);
+	hResult = device->CreateTexture2D(&textureDesc, NULL, &texture2d);
 	if (FAILED(hResult)) {
 		return false;
 	}
@@ -75,7 +79,7 @@ bool Texture::initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContex
 	rowPitch = (width * 4) * sizeof(unsigned char);
 
 	// Copy the targa image data into the texture.
-	deviceContext->UpdateSubresource(texture, 0, NULL, targaData, rowPitch, 0);
+	deviceContext->UpdateSubresource(texture2d, 0, NULL, targaData, rowPitch, 0);
 
 	// Setup the shader resource view description.
 	srvDesc.Format = textureDesc.Format;
@@ -84,7 +88,7 @@ bool Texture::initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContex
 	srvDesc.Texture2D.MipLevels = -1;
 
 	// Create the shader resource view for the texture.
-	hResult = device->CreateShaderResourceView(texture, &srvDesc, &textureView);
+	hResult = device->CreateShaderResourceView(texture2d, &srvDesc, &textureView);
 	if (FAILED(hResult)) {
 		return false;
 	}
@@ -107,9 +111,12 @@ void Texture::shutdown() {
 		textureView->Release();
 	}
 
-	if (texture) {
-		texture->Release();
+	if (texture2d) {
+		texture2d->Release();
 	}
+
+	if (texture)
+		texture->Release();
 
 	if (targaData) {
 		delete[] targaData;
