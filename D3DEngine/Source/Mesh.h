@@ -4,20 +4,19 @@
 #include <d3d11.h>
 #include <directxmath.h>
 #include <vector>
-#include <sstream>
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
-
+#include "Utils.h"
 #include "Texture.h"
 
 using namespace DirectX;
-using namespace std;
+//using namespace std;
 
 class Mesh {
-private:
+public:
 	struct Vertex {
 		XMFLOAT3 position;
 		XMFLOAT2 textureCoords;
@@ -31,11 +30,26 @@ private:
 			numVerts = numIndices = 0;
 		}
 
-		Texture* texture;
+		/*~MeshData() {
+			release();
+		}*/
+
+		Texture* texture = 0;
 		vector<Vertex> vertices;
 		vector<unsigned int> indices;
 
 		unsigned int numVerts, numIndices;
+
+		ID3D11Buffer *vertexBuffer = 0;
+		ID3D11Buffer *indexBuffer = 0;
+
+		void release() {
+			if (vertexBuffer)
+				vertexBuffer->Release();
+			if (indexBuffer)
+				indexBuffer->Release();
+
+		}
 	};
 
 	struct ModelData {
@@ -48,22 +62,25 @@ private:
 		string filepath;
 		vector<MeshData> meshData;
 
-		ID3D11Buffer *vertexBuffer = 0;
-		ID3D11Buffer *indexBuffer = 0;
+		//int stride = 2;
+
+		/** Buffers for static models */
+		ID3D11Buffer *vertexStaticBuffer = 0;
+		ID3D11Buffer *indexStaticBuffer = 0;
 		unsigned int numMeshes, numVerts, numIndices;
 
 		void release() {
-			if (vertexBuffer)
-				vertexBuffer->Release();
-			if (indexBuffer)
-				indexBuffer->Release();
+			if (vertexStaticBuffer)
+				vertexStaticBuffer->Release();
+			if (indexStaticBuffer)
+				indexStaticBuffer->Release();
 
 		}
 	};
 
 public:
 
-
+	ModelData* modelData;
 
 	Mesh();
 	~Mesh();
@@ -72,25 +89,20 @@ public:
 	bool loadMesh(ID3D11Device* device, const string filename);
 
 	void render(ID3D11DeviceContext* deviceContext);
+	void renderStatic(ID3D11DeviceContext* deviceContext);
 
 	int getIndexCount();
 private:
 
-	ModelData* modelData;
-	//MeshData* meshData;
-
-
-
+	
 
 
 	bool initFromScene(ID3D11Device* device, const aiScene* scene);
 
-	void loadTextures(MeshData* data, const aiMesh* aiMesh);
+	bool initializeBuffers(ID3D11Device* device, MeshData* meshData);
+	bool initializeStaticBuffers(ID3D11Device* device);
 
-
-	bool initializeBuffers(ID3D11Device* device);
-
-	void ERRORMESSAGE(stringstream& msg);
+	
 
 
 

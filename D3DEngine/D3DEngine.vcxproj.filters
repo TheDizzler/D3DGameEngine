@@ -28,6 +28,12 @@
     <Filter Include="Header Files\Graphics\Shaders">
       <UniqueIdentifier>{ce700f5c-5c23-411e-9093-4102b14ec833}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Graphics\Lights">
+      <UniqueIdentifier>{23ba6956-7b4b-42fa-9a76-d89d07cdc13f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\Lights">
+      <UniqueIdentifier>{a525e034-094b-4f15-8005-7dd099ea876b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\stone01.tga">
@@ -71,14 +77,20 @@
     <ClCompile Include="Source\TextureShader.cpp">
       <Filter>Source Files\Graphics\Shaders</Filter>
     </ClCompile>
-    <ClCompile Include="source\LightSource.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\ShaderBase.cpp">
       <Filter>Source Files\Graphics\Shaders</Filter>
     </ClCompile>
     <ClCompile Include="Source\Mesh.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DiffuseLight.cpp">
+      <Filter>Source Files\Graphics\Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="source\LightSource.cpp">
+      <Filter>Source Files\Graphics\Lights</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -86,9 +98,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\Input.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\LightSource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\TextFactory.h">
@@ -124,6 +133,15 @@
     <ClInclude Include="Source\Mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\DiffuseLight.h">
+      <Filter>Header Files\Graphics\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\LightSource.h">
+      <Filter>Header Files\Graphics\Lights</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="cube.txt">
@@ -150,5 +168,11 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="packages.config" />
+    <None Include="Source\shaders\DiffusePixelShader.hlsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Source\shaders\DiffuseVertexShader.hlsl">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

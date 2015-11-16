@@ -7,9 +7,9 @@
 
 GraphicsEngine::GraphicsEngine() {
 
-	bgColor[0] = 0.0f;
-	bgColor[1] = 0.0f;
-	bgColor[2] = 0.0f;
+	bgColor[0] = 1.0f;
+	bgColor[1] = 1.0f;
+	bgColor[2] = 1.0f;
 	bgColor[3] = 0.0f;
 }
 
@@ -29,7 +29,8 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 
 
 	camera = new Camera();
-	camera->setPosition(0.0f, 0.0f, -5.0f);
+	//camera->setPosition(0.0f, 1.0f, -5.0f);
+	camera->setPosition(0.0f, 5.0f, -145.0f);
 
 	/*model = new Model();
 	if (!model->initialize(device, "./cube.txt", L"./Assets/seafloor.dds")) {
@@ -38,7 +39,10 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 	}*/
 
 	mesh = new Mesh();
-	if (!mesh->loadMesh(device, "./assets/house/house.obj")) {
+	//if (!mesh->loadMesh(device, "./assets/house/house.obj")) {
+	//if (!mesh->loadMesh(device, "./assets/Aphrodite/aphrodite.obj")) {
+	if (!mesh->loadMesh(device, "./assets/spider/spider.obj")) {
+
 		MessageBox(NULL, L"Error trying to initialize mesh", L"ERROR", MB_OK);
 		return false;
 	}
@@ -49,11 +53,12 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 	}*/
 	//modelb->setPosition();
 
-	light = new LightSource();
+	light = new DiffuseLight();
+	light->setAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
 	light->setDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-	light->setDirection(0.0f, 0.0f, 1.0f);
+	light->setDirection(1.0f, 0.0f, 0.0f);
 
-	colorShader = new ColorShader();
+	/*colorShader = new ColorShader();
 	if (!colorShader->initialize(device, hwnd, COLOR_VERTEX_SHADER, COLOR_PIXEL_SHADER)) {
 		MessageBox(hwnd, L"Error initializing Color Shader", L"ERROR", MB_OK);
 		return false;
@@ -63,11 +68,11 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 	if (!textureShader->initialize(device, hwnd, TEXTURE_VERTEX_SHADER, TEXTURE_PIXEL_SHADER)) {
 		MessageBox(hwnd, L"Could not initialize the Texture Shader object.", L"Error", MB_OK);
 		return false;
-	}
+	}*/
 
 
 	lightShader = new LightShader();
-	if (!lightShader->initialize(device, hwnd, LIGHT_VERTEX_SHADER, LIGHT_PIXEL_SHADER)) {
+	if (!lightShader->initialize(device, hwnd, DIFFUSE_VERTEX_SHADER, DIFFUSE_PIXEL_SHADER)) {
 		MessageBox(hwnd, L"Could not initialize the Light Shader object.", L"Error", MB_OK);
 		return false;
 	}
@@ -149,7 +154,7 @@ void GraphicsEngine::update(double time, int fps) {
 	static float rotation = 0.0f;
 
 
-	rotation += (float) XM_PI * 0.01f;
+	rotation += (float) XM_PI * 0.005f;
 	if (rotation > 360.0f) {
 		rotation -= 360.0f;
 	}
@@ -184,13 +189,16 @@ void GraphicsEngine::render() {
 	/*if (!lightShader->render(deviceContext, model->getIndexCount(), worldMatrix, viewMatrix,
 		projectionMatrix, model->getTexture(), light->direction, light->diffuseColor))
 		MessageBox(NULL, L"Light Shader malfunction.", L"ERROR", MB_OK);*/
-
+	//mesh->renderStatic(deviceContext);
 	mesh->render(deviceContext);
-	if (!lightShader->render(deviceContext, mesh->getIndexCount(), worldMatrix, viewMatrix,
-		projectionMatrix, NULL, light->direction, light->diffuseColor))
+	if (FAILED(lightShader->render(deviceContext, mesh, worldMatrix, viewMatrix, projectionMatrix, light))) {
 		MessageBox(NULL, L"Light Shader malfunction.", L"ERROR", MB_OK);
+	}
+		/*if (!lightShader->render(deviceContext, mesh->getIndexCount(), worldMatrix, viewMatrix,
+			projectionMatrix, NULL, light->direction, light->diffuseColor))
+			MessageBox(NULL, L"Light Shader malfunction.", L"ERROR", MB_OK);*/
 
-	// This IF check is being run every frame and could be avoided
+		// This IF check is being run every frame and could be avoided
 	if (Globals::vsync_enabled) {
 		// Lock to screen refresh rate.
 		swapChain->Present(1, 0);

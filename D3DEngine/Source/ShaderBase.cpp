@@ -7,6 +7,15 @@ ShaderBase::ShaderBase() {
 
 
 ShaderBase::~ShaderBase() {
+
+	if (matrixBuffer)
+		matrixBuffer->Release();
+	if (layout)
+		layout->Release();
+	if (pixelShader)
+		pixelShader->Release();
+	if (vertexShader)
+		vertexShader->Release();
 }
 
 

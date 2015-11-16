@@ -155,6 +155,7 @@
     <ClCompile Include="Source\Camera.cpp" />
     <ClCompile Include="Source\ColorShader.cpp" />
     <ClCompile Include="Source\D3D.cpp" />
+    <ClCompile Include="Source\DiffuseLight.cpp" />
     <ClCompile Include="Source\GraphicsEngine.cpp" />
     <ClCompile Include="Source\Input.cpp" />
     <ClCompile Include="Source\LightShader.cpp" />
@@ -166,11 +167,13 @@
     <ClCompile Include="Source\TextFactory.cpp" />
     <ClCompile Include="Source\Texture.cpp" />
     <ClCompile Include="Source\TextureShader.cpp" />
+    <ClCompile Include="Source\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Camera.h" />
     <ClInclude Include="Source\ColorShader.h" />
     <ClInclude Include="Source\D3D.h" />
+    <ClInclude Include="Source\DiffuseLight.h" />
     <ClInclude Include="Source\Globals.h" />
     <ClInclude Include="Source\GraphicsEngine.h" />
     <ClInclude Include="Source\Input.h" />
@@ -182,9 +185,12 @@
     <ClInclude Include="Source\TextFactory.h" />
     <ClInclude Include="Source\Texture.h" />
     <ClInclude Include="Source\TextureShader.h" />
+    <ClInclude Include="Source\Utils.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Source\shaders\DiffusePixelShader.hlsl" />
+    <None Include="Source\shaders\DiffuseVertexShader.hlsl" />
     <None Include="Source\shaders\PixelShader.hlsl">
       <FileType>Document</FileType>
     </None>

@@ -9,7 +9,7 @@
 #include "ColorShader.h"
 #include "TextureShader.h"
 #include "LightShader.h"
-#include "LightSource.h"
+#include "DiffuseLight.h"
 
 /** Container for all graphical properties. For now it is the whole engine, including gameplay
 	elements but this will eventually be changed. */
@@ -35,7 +35,7 @@ public:
 private:
 
 	Camera* camera = 0;
-	LightSource* light = 0;
+	DiffuseLight* light = 0;
 	Model* model = 0;
 	Mesh* mesh = 0;
 
@@ -54,4 +54,6 @@ private:
 	const WCHAR* TEXTURE_PIXEL_SHADER = L"./source/shaders/TexturePixelShader.hlsl";
 	const WCHAR* LIGHT_VERTEX_SHADER = L"./source/shaders/LightVertexShader.hlsl";
 	const WCHAR* LIGHT_PIXEL_SHADER = L"./source/shaders/LightPixelShader.hlsl";
+	const WCHAR* DIFFUSE_VERTEX_SHADER = L"./source/shaders/DiffuseVertexShader.hlsl";
+	const WCHAR* DIFFUSE_PIXEL_SHADER = L"./source/shaders/DiffusePixelShader.hlsl";
 };

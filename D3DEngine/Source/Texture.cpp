@@ -1,5 +1,5 @@
 #include "Texture.h"
-
+#include "Utils.h"
 
 Texture::Texture() {
 
@@ -15,10 +15,13 @@ Texture::~Texture() {
 bool Texture::initialize(ID3D11Device* device, const wchar_t* filename) {
 
 	if (FAILED(CreateWICTextureFromFile(device, filename, &texture, &textureView))) {
-		MessageBox(NULL, L"Failed to D3DX11CreateShaderResourceViewFromFile", L"ERROR", MB_OK);
+		stringstream str;
+		str << "Failed CreateShaderResourceViewFromFile, file name: " << filename;
+		Utils::ErrorMessage(str);
+		//MessageBox(NULL, L"Failed CreateShaderResourceViewFromFile", L"ERROR", MB_OK);
 		return false;
 	}
-	
+
 	/*texture->
 
 	D3D11_TEXTURE2D_DESC desc;
@@ -30,8 +33,8 @@ bool Texture::initialize(ID3D11Device* device, const wchar_t* filename) {
 
 /** Initialize a texture from .dds file */
 bool Texture::initializeFromDDS(ID3D11Device* device, WCHAR* filename) {
-	
-	
+
+
 	if (FAILED(CreateDDSTextureFromFile(device, filename, NULL, &textureView))) {
 		MessageBox(NULL, L"Failed to D3DX11CreateShaderResourceViewFromFile", L"ERROR", MB_OK);
 		return false;
@@ -105,7 +108,7 @@ bool Texture::initializeFromTGA(ID3D11Device* device, ID3D11DeviceContext* devic
 
 
 void Texture::shutdown() {
-	
+
 
 	if (textureView) {
 		textureView->Release();
@@ -127,7 +130,10 @@ void Texture::shutdown() {
 
 
 ID3D11ShaderResourceView* Texture::getTexture() {
-	return textureView;
+	//if (textureView)
+		return textureView;
+	/*else
+		return NULL;*/
 }
 
 
@@ -195,8 +201,8 @@ bool Texture::loadTarga(char* filename, int& height, int& width) {
 	k = (width * height * 4) - (width * 4);
 
 	// Now copy the targa image data into the targa destination array in the correct order since the targa format is stored upside down.
-	for (j = 0; j<height; j++) {
-		for (i = 0; i<width; i++) {
+	for (j = 0; j < height; j++) {
+		for (i = 0; i < width; i++) {
 			targaData[index + 0] = targaImage[k + 2];  // Red.
 			targaData[index + 1] = targaImage[k + 1];  // Green.
 			targaData[index + 2] = targaImage[k + 0];  // Blue

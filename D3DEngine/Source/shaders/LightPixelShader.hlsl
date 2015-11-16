@@ -8,7 +8,7 @@ cbuffer LightBuffer {
 };
 
 
-struct PixelInputType {
+struct PixelShaderInput {
 	float4 position : SV_POSITION;
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
@@ -16,7 +16,7 @@ struct PixelInputType {
 };
 
 
-float4 LightPixelShader(PixelInputType input) : SV_TARGET {
+float4 LightPixelShader(PixelShaderInput input) : SV_TARGET {
 
 	float4 textureColor;
 	float3 lightDir;

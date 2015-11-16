@@ -11,13 +11,10 @@ LightShader::~LightShader() {
 
 
 void LightShader::shutdown() {
-
-	lightBuffer->Release();
-	sampleState->Release();
-	matrixBuffer->Release();
-	layout->Release();
-	pixelShader->Release();
-	vertexShader->Release();
+	if (lightBuffer)
+		lightBuffer->Release();
+	if (sampleState)
+		sampleState->Release();
 }
 
 
@@ -34,7 +31,7 @@ bool LightShader::initializeShader(ID3D11Device * device, HWND hwnd, const WCHAR
 
 
 	// Compile the vertex shader code.
-	if (FAILED(D3DCompileFromFile(vsFilename, NULL, NULL, "LightVertexShader", Globals::VERTEX_SHADER_VERSION,
+	if (FAILED(D3DCompileFromFile(vsFilename, NULL, NULL, "DiffuseLightVertexShader", Globals::VERTEX_SHADER_VERSION,
 		D3D10_SHADER_ENABLE_STRICTNESS, 0, &vertexShaderBuffer, &errorMessage))) {
 		if (errorMessage) {
 			outputShaderErrorMessage(errorMessage, hwnd, vsFilename);
@@ -45,7 +42,7 @@ bool LightShader::initializeShader(ID3D11Device * device, HWND hwnd, const WCHAR
 		return false;
 	}
 
-	if (FAILED(D3DCompileFromFile(psFilename, NULL, NULL, "LightPixelShader", Globals::PIXEL_SHADER_VERSION,
+	if (FAILED(D3DCompileFromFile(psFilename, NULL, NULL, "DiffuseLightPixelShader", Globals::PIXEL_SHADER_VERSION,
 		D3D10_SHADER_ENABLE_STRICTNESS, 0, &pixelShaderBuffer, &errorMessage))) {
 		if (errorMessage) {
 			outputShaderErrorMessage(errorMessage, hwnd, psFilename);
@@ -152,7 +149,7 @@ bool LightShader::initializeShader(ID3D11Device * device, HWND hwnd, const WCHAR
 	// light dynamic constant buffer description
 	// Note that ByteWidth always needs to be a multiple of 16 if using D3D11_BIND_CONSTANT_BUFFER or CreateBuffer will fail.
 	lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	lightBufferDesc.ByteWidth = sizeof(LightBufferType);
+	lightBufferDesc.ByteWidth = sizeof(DiffuseLightBuffer);
 	lightBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	lightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	lightBufferDesc.MiscFlags = 0;
@@ -162,8 +159,85 @@ bool LightShader::initializeShader(ID3D11Device * device, HWND hwnd, const WCHAR
 		return false;
 	}
 
-		return true;
+	return true;
 }
+
+
+bool LightShader::render(ID3D11DeviceContext *deviceContext, Mesh* mesh, XMMATRIX worldMatrix,
+	XMMATRIX viewMatrix, XMMATRIX projectionMatrix, DiffuseLight* light) {
+
+	if (!setShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, mesh,
+		light->direction, light->diffuseColor, light->ambientColor)) {
+		return false;
+	}
+
+	renderShader(deviceContext, mesh->getIndexCount());
+}
+
+
+
+
+bool LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix,
+	XMMATRIX viewMatrix, XMMATRIX projectionMatrix, Mesh* mesh,
+	XMFLOAT3 lightDirection, XMFLOAT4 diffuseColor, XMFLOAT4 ambientColor) {
+
+
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	MatrixBufferType* dataPtr;
+	unsigned int bufferNumber;
+
+
+	// Transpose the matrices to prepare them for the shader.
+	worldMatrix = XMMatrixTranspose(worldMatrix);
+	viewMatrix = XMMatrixTranspose(viewMatrix);
+	projectionMatrix = XMMatrixTranspose(projectionMatrix);
+
+	if (FAILED(deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource))) {
+		return false;
+	}
+
+	dataPtr = (MatrixBufferType*) mappedResource.pData;
+
+	dataPtr->world = worldMatrix;
+	dataPtr->view = viewMatrix;
+	dataPtr->projection = projectionMatrix;
+
+	deviceContext->Unmap(matrixBuffer, 0);
+	bufferNumber = 0;
+
+	for (int i = 0; i < mesh->modelData->numMeshes; ++i) {
+	//for (int i = mesh->modelData->numMeshes - 1; i >= 0; --i) {
+		Mesh::MeshData data = mesh->modelData->meshData[i];
+		ID3D11ShaderResourceView* texture;
+
+		if (data.texture)
+			texture = data.texture->getTexture();
+		else
+			texture = NULL;
+		deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer);
+		deviceContext->PSSetShaderResources(0, 1, &texture);
+
+		/***** Light Constant Buffer *****/
+		DiffuseLightBuffer* dataPtr2;
+		// Must lock light constant buffer so can write to it
+		if (FAILED(deviceContext->Map(lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource))) {
+			return false;
+		}
+
+		dataPtr2 = (DiffuseLightBuffer*) mappedResource.pData;
+		dataPtr2->ambientColor = ambientColor;
+		dataPtr2->diffuseColor = diffuseColor;
+		dataPtr2->lightDirection = lightDirection;
+		dataPtr2->padding = 0.0f;
+
+		deviceContext->Unmap(lightBuffer, 0);	// Unlock the constant buffer.
+		bufferNumber = 0;
+		deviceContext->PSSetConstantBuffers(bufferNumber, 1, &lightBuffer);
+	}
+	return true;
+}
+
+
 
 
 bool LightShader::render(ID3D11DeviceContext *deviceContext, int indexCount,
@@ -205,19 +279,19 @@ bool LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATR
 	dataPtr->view = viewMatrix;
 	dataPtr->projection = projectionMatrix;
 
-	deviceContext->Unmap(matrixBuffer, 0); 
+	deviceContext->Unmap(matrixBuffer, 0);
 	bufferNumber = 0;
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer);
 	deviceContext->PSSetShaderResources(0, 1, &texture);
 
 	/***** Light Constant Buffer *****/
-	LightBufferType* dataPtr2;
+	DiffuseLightBuffer* dataPtr2;
+	// Must lock light constant buffer so can write to it
 	if (FAILED(deviceContext->Map(lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource))) {
-		// Must lock light constant buffer so can write to it
 		return false;
 	}
 
-	dataPtr2 = (LightBufferType*) mappedResource.pData;
+	dataPtr2 = (DiffuseLightBuffer*) mappedResource.pData;
 	dataPtr2->diffuseColor = diffuseColor;
 	dataPtr2->lightDirection = lightDirection;
 	dataPtr2->padding = 0.0f;
@@ -229,6 +303,7 @@ bool LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATR
 	return true;
 }
 
+
 void LightShader::renderShader(ID3D11DeviceContext* deviceContext, int indexCount) {
 
 	deviceContext->IASetInputLayout(layout);
@@ -236,11 +311,9 @@ void LightShader::renderShader(ID3D11DeviceContext* deviceContext, int indexCoun
 	deviceContext->VSSetShader(vertexShader, NULL, 0);
 	deviceContext->PSSetShader(pixelShader, NULL, 0);
 
-
 	// Set the sampler state in the pixel shader.
 	deviceContext->PSSetSamplers(0, 1, &sampleState);
 
-	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);
 }
 

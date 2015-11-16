@@ -11,14 +11,11 @@ public:
 	LightSource();
 	~LightSource();
 
-
-	void setDiffuseColor(float red, float green, float blue, float alpha);
 	void setDirection(float x, float y, float z);
 
 
 	XMFLOAT3 direction;
-	XMFLOAT4 diffuseColor;
-
+	
 	
 };
 

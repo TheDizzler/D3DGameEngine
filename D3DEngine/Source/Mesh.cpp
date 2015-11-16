@@ -26,10 +26,19 @@ bool Mesh::loadMesh(ID3D11Device* device, const string filename) {
 		| aiProcess_GenSmoothNormals // generates vertex normals if model does not already contain them
 		| aiProcess_FlipUVs // flips texture coordinates along the Y axis
 		| aiProcess_CalcTangentSpace
-			/*| aiProcess_JoinIdenticalVertices
-			| aiProcess_SortByPType
-			| aiProcessPreset_TargetRealtime_MaxQuality
-			| aiProcess_ConvertToLeftHanded*/);
+		| aiProcess_PreTransformVertices
+		| aiProcess_FixInfacingNormals
+		| aiProcess_FindInvalidData
+		| aiProcess_ValidateDataStructure
+		//| aiProcess_ConvertToLeftHanded
+		//| aiProcess_JoinIdenticalVertices
+		//| aiProcess_SortByPType
+		//| aiProcessPreset_TargetRealtime_MaxQuality
+		//| aiProcess_LimitBoneWeights
+		| aiProcess_MakeLeftHanded
+		//| aiProcess_OptimizeMeshes
+		//| aiProcess_FixInfacingNormals
+		);
 
 
 	if (!scene) {
@@ -54,13 +63,13 @@ bool Mesh::loadMesh(ID3D11Device* device, const string filename) {
 		return false;
 	}
 
-	
+
 	//if (currentvertex == 0) {// this could happen, if so GET OUTOF HERE
 	//	OUTPUT_DEBUG_MSG("Problem loading the mesh, there were no vertices loaded. Failed to load the mesh");
 	//	return false;
 	//}
 
-	if (!initializeBuffers(device)) {
+	if (!initializeStaticBuffers(device)) {
 		return false;
 	}
 
@@ -77,7 +86,7 @@ bool Mesh::initFromScene(ID3D11Device* device, const aiScene* scene) {
 		modelData->numIndices += scene->mMeshes[i]->mNumFaces * 3;
 	}
 
-	int stride = (modelData->numVerts >= 65536 ? 4 : 2);
+	//int stride = (modelData->numVerts >= 65536 ? 4 : 2);
 
 
 	for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
@@ -98,7 +107,7 @@ bool Mesh::initFromScene(ID3D11Device* device, const aiScene* scene) {
 			else
 				str << " \n Problem: The mesh containes points when it should only contain triangles";
 
-			ERRORMESSAGE(str);
+			Utils::ErrorMessage(str);
 
 			continue;
 		}
@@ -107,7 +116,7 @@ bool Mesh::initFromScene(ID3D11Device* device, const aiScene* scene) {
 			stringstream str;
 			str << "There are errors with this submesh, named: " << mesh->mName.data;
 			str << " \n Problem: The mesh containes no texcoords, which means there will just be color displayed. This engine does not support color mesh displays, only textured mesh!";
-			ERRORMESSAGE(str);
+			Utils::ErrorMessage(str);
 			continue;
 		}
 
@@ -115,7 +124,7 @@ bool Mesh::initFromScene(ID3D11Device* device, const aiScene* scene) {
 			stringstream str;
 			str << "There are errors with this submesh, named: " << mesh->mName.data;
 			str << " \n Problem: Tangents were not created. No known fix";
-			ERRORMESSAGE(str);
+			Utils::ErrorMessage(str);
 			continue;
 		}
 
@@ -140,8 +149,6 @@ bool Mesh::initFromScene(ID3D11Device* device, const aiScene* scene) {
 
 			data->vertices[x] = v;
 		}
-
-		//loadTextures(data, mesh);
 
 		aiString path;
 
@@ -171,12 +178,14 @@ bool Mesh::initFromScene(ID3D11Device* device, const aiScene* scene) {
 			out += wstring(wcstring);
 			const wchar_t* texturepath = out.c_str();
 
-			//MessageBox(NULL, texturepath, L"HU>", MB_OK);
+			//MessageBox(NULL, texturepath, L"CHECK", MB_OK); // check if filenames are correct
 
 			Texture* diffuse = new Texture();
-			diffuse->initialize(device, texturepath);
+			if (diffuse->initialize(device, texturepath)) {
 
-			data->texture = diffuse;
+				data->texture = diffuse;
+			}
+
 		} else {
 
 			//MessageBox(NULL, L"No diffuse texture found", L"WARNING", MB_OK);
@@ -198,61 +207,77 @@ bool Mesh::initFromScene(ID3D11Device* device, const aiScene* scene) {
 		}
 
 
+		if (!initializeBuffers(device, data)) {
+			MessageBox(NULL, L"Error initializing Buffers", L"Buffer", MB_OK);
+			return false;
+		}
 
 		modelData->meshData[i] = *data;
 
-
-			//loadMaterials(mesh, load->mMaterials, batch, pathtomodel, Asset_Dir);
-		//	batch->NumIndices = mesh->mNumFaces * 3;
-		//	batch->StartIndex = static_cast<uint32_t>(currentindex);
-		//	batch->NumVerts = mesh->mNumVertices;
-		//	// make sure to increment the ref count for thesse so they are properly destroyed
-
-		//	currentvertex += mesh->mNumVertices;
-		//	currentindex += mesh->mNumFaces * 3;
-
-		//	//For now, there will be a new shader for each material. I will create a shader cache where the graphics lib will cache the shaders and issue out already created shaders like it does with textures.
-		//	Graphics::Shader_Macro macro1[] = {
-		//		{"NORMALMAP", "1"},
-		//		{NULL, NULL}
-		//	};
-		//	Graphics::Shader_Macro macro0[] = {
-		//		{"NORMALMAP", "0"},
-		//		{NULL, NULL}
-		//	};
-
-		//	Graphics::Shader_Macro* ptr = nullptr;
-		//	if (batch->Has_NormalMap()) ptr = macro1;
-		//	else ptr = macro0;
-
-		//	batch->GetVS()->CompileShaderFromFile("Static_Mesh.fx", "VS", "vs_4_0", ptr);
-
-		//	FormatDesc lay[] = {
-		//		FormatDesc(),
-		//		FormatDesc(TYPE_TEXCOORD, FORMAT_FLOAT, 2),
-		//		FormatDesc(TYPE_NORMAL, FORMAT_FLOAT, 3),
-		//		FormatDesc(TYPE_TANGENT, FORMAT_FLOAT, 3)
-		//	};
-		//	batch->GetVS()->CreateInputLayout(lay, 4);
-		//	batch->GetPS()->CompileShaderFromFile("Static_Mesh.fx", "PS", "ps_4_0", ptr);
-
-		//	Batches.push_back(batch);
 	}
 
 	return true;
 }
 
 
-void Mesh::loadTextures(MeshData* data, const aiMesh* aiMesh) {
 
-	//const aiMaterial* material = scene->mMaterials[aiMesh->mMaterialIndex];
+bool Mesh::initializeBuffers(ID3D11Device* device, MeshData* meshData) {
 
+
+	Vertex* tempVerts;
+	unsigned long* tempIndices;
+
+	tempVerts = new Vertex[meshData->numVerts];
+	tempIndices = new unsigned long[meshData->numIndices];
+
+	for (int j = 0; j < meshData->numVerts; ++j) {
+		tempVerts[j] = meshData->vertices[j];
+		tempIndices[j] = j;
+	}
+
+	/**** VERTEX BUFFER ****/
+	D3D11_BUFFER_DESC vertexBufferDesc;
+	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;	// D3D11_USAGE_DYNAMIC allows buffer to be updated
+	vertexBufferDesc.ByteWidth = sizeof(Vertex) * meshData->numVerts;
+	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertexBufferDesc.CPUAccessFlags = 0;
+	vertexBufferDesc.MiscFlags = 0;
+	vertexBufferDesc.StructureByteStride = 0;
+
+	D3D11_SUBRESOURCE_DATA vertexData;
+	vertexData.pSysMem = tempVerts;
+	vertexData.SysMemPitch = 0;
+	vertexData.SysMemSlicePitch = 0;
+
+	if (FAILED(device->CreateBuffer(&vertexBufferDesc, &vertexData, &meshData->vertexBuffer))) {
+		MessageBox(NULL, L"Error creating Vertex Buffer", L"ERROR", MB_OK);
+		return false;
+	}
+
+	/**** INDEX BUFFER ****/
+	D3D11_BUFFER_DESC indexBufferDesc;
+	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	indexBufferDesc.ByteWidth = sizeof(unsigned long) * meshData->numIndices;
+	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	indexBufferDesc.CPUAccessFlags = 0;
+	indexBufferDesc.MiscFlags = 0;
+	indexBufferDesc.StructureByteStride = 0;
+
+	D3D11_SUBRESOURCE_DATA indexData;
+	indexData.pSysMem = tempIndices;
+	indexData.SysMemPitch = 0;
+	indexData.SysMemSlicePitch = 0;
+
+	if (FAILED(device->CreateBuffer(&indexBufferDesc, &indexData, &meshData->indexBuffer))) {
+		MessageBox(NULL, L"Error creating Index Buffer", L"ERROR", MB_OK);
+		return false;
+	}
+
+	return true;
 }
 
 
-
-
-bool Mesh::initializeBuffers(ID3D11Device* device) {
+bool Mesh::initializeStaticBuffers(ID3D11Device* device) {
 
 	Vertex* tempVerts;
 	unsigned long* tempIndices;
@@ -290,7 +315,7 @@ bool Mesh::initializeBuffers(ID3D11Device* device) {
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
 
-	if (FAILED(device->CreateBuffer(&vertexBufferDesc, &vertexData, &modelData->vertexBuffer))) {
+	if (FAILED(device->CreateBuffer(&vertexBufferDesc, &vertexData, &modelData->vertexStaticBuffer))) {
 		return false;
 	}
 
@@ -308,7 +333,7 @@ bool Mesh::initializeBuffers(ID3D11Device* device) {
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
 
-	if (FAILED(device->CreateBuffer(&indexBufferDesc, &indexData, &modelData->indexBuffer))) {
+	if (FAILED(device->CreateBuffer(&indexBufferDesc, &indexData, &modelData->indexStaticBuffer))) {
 		return false;
 	}
 
@@ -319,8 +344,25 @@ bool Mesh::initializeBuffers(ID3D11Device* device) {
 }
 
 
-
 void Mesh::render(ID3D11DeviceContext* deviceContext) {
+
+	unsigned int stride = sizeof(Vertex);
+	unsigned int offset = 0;
+	unsigned int slot = 0;
+
+	for (int i = 0; i < modelData->numMeshes; ++i) {
+	//for (int i = modelData->numMeshes - 1; i >= 0; --i) {
+		deviceContext->IASetVertexBuffers(0, 1, &modelData->meshData[i].vertexBuffer, &stride, &offset);
+		deviceContext->IASetIndexBuffer(modelData->meshData[i].indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		deviceContext->DrawIndexed(modelData->meshData[i].numIndices, 0, 0);
+		//++slot;
+	}
+
+}
+
+
+void Mesh::renderStatic(ID3D11DeviceContext* deviceContext) {
 
 	unsigned int stride;
 	unsigned int offset;
@@ -328,10 +370,9 @@ void Mesh::render(ID3D11DeviceContext* deviceContext) {
 	stride = sizeof(Vertex);
 	offset = 0;
 
-	deviceContext->IASetVertexBuffers(0, 1, &modelData->vertexBuffer, &stride, &offset);
-	deviceContext->IASetIndexBuffer(modelData->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	deviceContext->IASetVertexBuffers(0, 1, &modelData->vertexStaticBuffer, &stride, &offset);
+	deviceContext->IASetIndexBuffer(modelData->indexStaticBuffer, DXGI_FORMAT_R32_UINT, 0);
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 
 }
 
@@ -377,15 +418,6 @@ int Mesh::getIndexCount() {
 
 	return modelData->numIndices;
 
-}
-
-void Mesh::ERRORMESSAGE(stringstream& msg) {
-
-	string str = msg.str();
-	wstring wstr;
-	for (int i = 0; i < str.size(); ++i)
-		wstr += wchar_t(str[i]);
-	MessageBox(NULL, wstr.c_str(), L"This is an Error Msg", MB_OK);
 }
 
 

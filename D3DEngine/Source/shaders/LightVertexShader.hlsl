@@ -5,14 +5,14 @@ cbuffer MatrixBuffer {
 };
 
 
-struct VertexInputType {
+struct VertexShaderInput {
 	float4 position : POSITION;
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
 	float3 tangent : TANGENT;
 };
 
-struct PixelInputType {
+struct PixelShaderInput {
 	float4 position : SV_POSITION;
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
@@ -20,9 +20,9 @@ struct PixelInputType {
 };
 
 
-PixelInputType LightVertexShader(VertexInputType input) {
+PixelShaderInput LightVertexShader(VertexShaderInput input) {
 
-	PixelInputType output;
+	PixelShaderInput output;
 
 	input.position.w = 1.0f;
 

@@ -6,6 +6,8 @@
 #include <fstream>
 
 #include "Globals.h"
+#include "Mesh.h"
+
 
 using namespace DirectX;
 using namespace std;
@@ -36,9 +38,9 @@ protected:
 
 	void outputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, const WCHAR* shaderFilename);
 
-	ID3D11VertexShader* vertexShader;
-	ID3D11PixelShader* pixelShader;
-	ID3D11InputLayout* layout;
-	ID3D11Buffer* matrixBuffer;
+	ID3D11VertexShader* vertexShader = 0;
+	ID3D11PixelShader* pixelShader = 0;
+	ID3D11InputLayout* layout = 0;
+	ID3D11Buffer* matrixBuffer = 0;
 };
 

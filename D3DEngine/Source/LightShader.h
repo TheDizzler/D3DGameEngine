@@ -1,12 +1,13 @@
 #pragma once
 
 #include "ShaderBase.h"
-
+#include "DiffuseLight.h"
 
 class LightShader : public ShaderBase {
 private:
 
-	struct LightBufferType {
+	struct DiffuseLightBuffer {
+		XMFLOAT4 ambientColor;
 		XMFLOAT4 diffuseColor;
 		XMFLOAT3 lightDirection;
 		float padding;
@@ -17,6 +18,9 @@ public:
 	~LightShader();
 
 	virtual void shutdown();
+
+	bool render(ID3D11DeviceContext *deviceContext, Mesh* mesh, XMMATRIX worldMatrix,
+		XMMATRIX viewMatrix, XMMATRIX projectionMatrix, DiffuseLight* light);
 
 	bool render(ID3D11DeviceContext *deviceContext, int indexCount,
 		XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix,
@@ -29,12 +33,16 @@ private:
 	virtual void renderShader(ID3D11DeviceContext* deviceContext, int indexCount);
 
 	bool setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix,
+		XMMATRIX viewMatrix, XMMATRIX projectionMatrix, Mesh* mesh,
+		XMFLOAT3 lightDirection, XMFLOAT4 diffuseColor, XMFLOAT4 ambientColor);
+
+	bool setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix,
 		XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture,
 		XMFLOAT3 lightDirection, XMFLOAT4 diffuseColor);
 
 
 
-	ID3D11SamplerState* sampleState;
-	ID3D11Buffer* lightBuffer;
+	ID3D11SamplerState* sampleState = 0;
+	ID3D11Buffer* lightBuffer = 0;
 };
 
