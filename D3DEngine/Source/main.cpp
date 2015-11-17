@@ -1,10 +1,8 @@
-#include <Windows.h>
-
 #include "GraphicsEngine.h"
 //#include "Input.h"
 #include "Globals.h"
 
-LPCTSTR appName = L"My Second Game Engine";
+
 HWND hwnd;
 //Input* input;
 
@@ -167,7 +165,7 @@ bool initWindow(HINSTANCE hInstance, int showWnd, int width, int height, bool wi
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);	// mo' mouse cursors http://msdn.microsoft.com/en-us/library/ms648391(VS.85).aspx
 	wc.hbrBackground = (HBRUSH) GetStockObject(BLACK_BRUSH);
 	wc.lpszMenuName = NULL;
-	wc.lpszClassName = appName;
+	wc.lpszClassName = Globals::appName;
 	wc.hIconSm = LoadIcon(NULL, IDI_WINLOGO);	// taskbar icon
 
 	if (!RegisterClassEx(&wc)) {
@@ -206,8 +204,8 @@ bool initWindow(HINSTANCE hInstance, int showWnd, int width, int height, bool wi
 
 	hwnd = CreateWindowEx(
 		WS_EX_APPWINDOW,
-		appName,
-		appName,				// title bar text
+		Globals::appName,
+		Globals::appName,				// title bar text
 		WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP,
 		posX, posY,
 		screenWidth, screenHeight,

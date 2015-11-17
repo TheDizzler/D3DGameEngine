@@ -1,19 +1,15 @@
 #pragma once
 
-
-#include <d3d11.h>
-#include <directxmath.h>
-#include <vector>
+#include "Texture.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
-#include "Utils.h"
-#include "Texture.h"
+
 
 using namespace DirectX;
-//using namespace std;
+
 
 class Mesh {
 public:
@@ -80,7 +76,7 @@ public:
 
 public:
 
-	ModelData* modelData;
+	ModelData* modelData = 0;
 
 	Mesh();
 	~Mesh();

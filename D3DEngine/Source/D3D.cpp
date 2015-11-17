@@ -196,7 +196,9 @@ bool D3D::initializeRasterizer() {
 	rasterDesc.DepthClipEnable = true;
 	rasterDesc.FillMode = D3D11_FILL_SOLID;
 	rasterDesc.CullMode = D3D11_CULL_BACK;
-	rasterDesc.FrontCounterClockwise = false;
+	rasterDesc.FrontCounterClockwise = true;	// false = furthest surface gets drawn
+												// when CullMode = D3D11_CULL_BACK and
+												// opposite if CullMode = D3D11_CULL_FRONT
 	rasterDesc.MultisampleEnable = false;
 	rasterDesc.ScissorEnable = false;
 	rasterDesc.SlopeScaledDepthBias = 0.0f;

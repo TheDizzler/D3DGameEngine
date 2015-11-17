@@ -68,21 +68,6 @@
     <ClCompile Include="Source\Texture.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ColorShader.cpp">
-      <Filter>Source Files\Graphics\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\LightShader.cpp">
-      <Filter>Source Files\Graphics\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\TextureShader.cpp">
-      <Filter>Source Files\Graphics\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ShaderBase.cpp">
-      <Filter>Source Files\Graphics\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Mesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -91,6 +76,27 @@
     </ClCompile>
     <ClCompile Include="source\LightSource.cpp">
       <Filter>Source Files\Graphics\Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\shaders\ShaderManager.cpp">
+      <Filter>Source Files\Graphics\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\shaders\ShaderBase.cpp">
+      <Filter>Source Files\Graphics\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\shaders\TextureShader.cpp">
+      <Filter>Source Files\Graphics\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\shaders\LightShader.cpp">
+      <Filter>Source Files\Graphics\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\shaders\ColorShader.cpp">
+      <Filter>Source Files\Graphics\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Mesh.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\D3DEnginePCH.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -118,21 +124,6 @@
     <ClInclude Include="Source\Texture.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ColorShader.h">
-      <Filter>Header Files\Graphics\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\LightShader.h">
-      <Filter>Header Files\Graphics\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\TextureShader.h">
-      <Filter>Header Files\Graphics\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ShaderBase.h">
-      <Filter>Header Files\Graphics\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -141,6 +132,27 @@
     </ClInclude>
     <ClInclude Include="Source\LightSource.h">
       <Filter>Header Files\Graphics\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\shaders\ShaderManager.h">
+      <Filter>Header Files\Graphics\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\shaders\TextureShader.h">
+      <Filter>Header Files\Graphics\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\shaders\ShaderBase.h">
+      <Filter>Header Files\Graphics\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\shaders\LightShader.h">
+      <Filter>Header Files\Graphics\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\shaders\ColorShader.h">
+      <Filter>Header Files\Graphics\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Mesh.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\D3DEnginePCH.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,7 +1,6 @@
 #include "GraphicsEngine.h"
 
 #include <tchar.h>
-#include <sstream>
 #include <strsafe.h>
 
 
@@ -30,7 +29,7 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 
 	camera = new Camera();
 	//camera->setPosition(0.0f, 1.0f, -5.0f);
-	camera->setPosition(0.0f, 5.0f, -145.0f);
+	camera->setPosition(0.0f, 15.0f, -165.0f);
 
 	/*model = new Model();
 	if (!model->initialize(device, "./cube.txt", L"./Assets/seafloor.dds")) {
@@ -41,8 +40,8 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 	mesh = new Mesh();
 	//if (!mesh->loadMesh(device, "./assets/house/house.obj")) {
 	//if (!mesh->loadMesh(device, "./assets/Aphrodite/aphrodite.obj")) {
-	if (!mesh->loadMesh(device, "./assets/spider/spider.obj")) {
-
+	if (!mesh->loadMesh(device, "../../D3DEngine/assets/spider/spider.obj")) {
+	//if (!mesh->loadMesh(device, "./assets/castle/castle01.obj")) {
 		MessageBox(NULL, L"Error trying to initialize mesh", L"ERROR", MB_OK);
 		return false;
 	}
@@ -58,24 +57,8 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 	light->setDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	light->setDirection(1.0f, 0.0f, 0.0f);
 
-	/*colorShader = new ColorShader();
-	if (!colorShader->initialize(device, hwnd, COLOR_VERTEX_SHADER, COLOR_PIXEL_SHADER)) {
-		MessageBox(hwnd, L"Error initializing Color Shader", L"ERROR", MB_OK);
-		return false;
-	}
-
-	textureShader = new TextureShader();
-	if (!textureShader->initialize(device, hwnd, TEXTURE_VERTEX_SHADER, TEXTURE_PIXEL_SHADER)) {
-		MessageBox(hwnd, L"Could not initialize the Texture Shader object.", L"Error", MB_OK);
-		return false;
-	}*/
-
-
-	lightShader = new LightShader();
-	if (!lightShader->initialize(device, hwnd, DIFFUSE_VERTEX_SHADER, DIFFUSE_PIXEL_SHADER)) {
-		MessageBox(hwnd, L"Could not initialize the Light Shader object.", L"Error", MB_OK);
-		return false;
-	}
+	shaders = new ShaderManager();
+	shaders->initializeManager(device, hwnd);
 
 
 	testText();
@@ -141,7 +124,7 @@ void GraphicsEngine::testText() {
 	textFactory->editText(label, str);
 }
 
-
+float rotation = 0.0f;
 
 void GraphicsEngine::update(double time, int fps) {
 
@@ -151,7 +134,7 @@ void GraphicsEngine::update(double time, int fps) {
 	wstring str(ws.str());
 	textFactory->editText(timer, str);
 
-	static float rotation = 0.0f;
+	
 
 
 	rotation += (float) XM_PI * 0.005f;
@@ -177,64 +160,30 @@ void GraphicsEngine::render() {
 	camera->getViewMatrix(viewMatrix);
 
 
-	/*modelb->render(deviceContext);
-	if (!colorShader->render(deviceContext, modelb->getIndexCount(), worldMatrix, viewMatrix, projectionMatrix))
-		MessageBox(NULL, L"Color Shader malfunction.", L"ERROR", MB_OK);*/
-
-	//model->render(deviceContext);
-
-	/*if (!textureShader->render(deviceContext, model->getIndexCount(), worldMatrix, viewMatrix,
-		projectionMatrix, model->getTexture()))
-		MessageBox(NULL, L"Texture Shader malfunction.", L"ERROR", MB_OK);*/
-	/*if (!lightShader->render(deviceContext, model->getIndexCount(), worldMatrix, viewMatrix,
-		projectionMatrix, model->getTexture(), light->direction, light->diffuseColor))
-		MessageBox(NULL, L"Light Shader malfunction.", L"ERROR", MB_OK);*/
-	//mesh->renderStatic(deviceContext);
 	mesh->render(deviceContext);
-	if (FAILED(lightShader->render(deviceContext, mesh, worldMatrix, viewMatrix, projectionMatrix, light))) {
+	if (!shaders->lightShader->render(deviceContext, mesh, worldMatrix, viewMatrix, projectionMatrix, light)) {
 		MessageBox(NULL, L"Light Shader malfunction.", L"ERROR", MB_OK);
 	}
-		/*if (!lightShader->render(deviceContext, mesh->getIndexCount(), worldMatrix, viewMatrix,
+
+	//mesh->renderStatic(deviceContext);
+	/*if (!lightShader->render(deviceContext, mesh->getIndexCount(), worldMatrix, viewMatrix,
 			projectionMatrix, NULL, light->direction, light->diffuseColor))
 			MessageBox(NULL, L"Light Shader malfunction.", L"ERROR", MB_OK);*/
 
-		// This IF check is being run every frame and could be avoided
-	if (Globals::vsync_enabled) {
-		// Lock to screen refresh rate.
-		swapChain->Present(1, 0);
-	} else {
-		// Present as fast as possible.
-		swapChain->Present(0, 0);
-	}
+	swapChain->Present(Globals::vsync_enabled, 0);
+
 }
-
-// This IF check is being run every frame and could be avoided
-//void GraphicsEngine::endDraw() {
-//
-//	// Present the back buffer to the screen since rendering is complete.
-//	if (m_vsync_enabled) {
-//		// Lock to screen refresh rate.
-//		swapChain->Present(1, 0);
-//	} else {
-//		// Present as fast as possible.
-//		swapChain->Present(0, 0);
-//	}
-//}
-
-
 
 
 void GraphicsEngine::shutdown() {
 
 	if (light)
 		delete light;
-	if (lightShader)
-		lightShader->shutdown();
-	if (textureShader)
-		textureShader->shutdown();
-	if (colorShader)
-		colorShader->shutdown();
-		//model->shutdown();
+	if (shaders) 
+		shaders->release();
+	
+
+
 	if (mesh)
 		delete mesh;
 	if (camera)

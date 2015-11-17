@@ -1,5 +1,7 @@
+
 Texture2D shaderTexture;
 SamplerState SampleType;
+
 
 cbuffer DiffuseLightBuffer {
 	float4 ambientColor;
@@ -7,7 +9,6 @@ cbuffer DiffuseLightBuffer {
 	float3 lightDirection;
 	float padding;
 };
-
 
 struct PixelShaderInput {
 	float4 position : SV_POSITION;

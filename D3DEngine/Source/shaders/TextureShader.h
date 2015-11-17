@@ -8,12 +8,12 @@ public:
 	TextureShader();
 	~TextureShader();
 
-	virtual void shutdown();
+	virtual void release();
 
 	bool render(ID3D11DeviceContext *deviceContext, int indexCount,
 		XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture);
 
-private:
+protected:
 	
 	virtual bool initializeShader(ID3D11Device* device, HWND hwnd,
 		const WCHAR* vsFilename, const WCHAR* psFilename);
@@ -22,9 +22,8 @@ private:
 	bool setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix,
 		XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture);
 
-	
-
-	ID3D11SamplerState* sampleState;
+	virtual HRESULT initMatrixBuffer(ID3D11Device* device);
+	virtual HRESULT initSamplerState(ID3D11Device* device);
 	
 };
 

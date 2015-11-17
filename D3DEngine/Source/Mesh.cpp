@@ -164,7 +164,7 @@ bool Mesh::initFromScene(ID3D11Device* device, const aiScene* scene) {
 			str << "\n PATH: " << path.data;
 			str << "\n modelname: " << modelData->modelName;
 			str << "\n filepath: " << modelData->filepath;
-			ERRORMESSAGE(str);*/
+			Utils::ErrorMessage(str);*/
 
 
 			size_t origsize = strlen(path.data) + 1;
@@ -203,7 +203,7 @@ bool Mesh::initFromScene(ID3D11Device* device, const aiScene* scene) {
 			str << " \n aiTextureType_SHININESS: " << material->GetTextureCount(aiTextureType_SHININESS);
 			str << " \n aiTextureType_SPECULAR: " << material->GetTextureCount(aiTextureType_SPECULAR);
 			str << " \n aiTextureType_UNKNOWN: " << material->GetTextureCount(aiTextureType_UNKNOWN);
-			ERRORMESSAGE(str);*/
+			Utils::ErrorMessage(str);*/
 		}
 
 
@@ -348,15 +348,12 @@ void Mesh::render(ID3D11DeviceContext* deviceContext) {
 
 	unsigned int stride = sizeof(Vertex);
 	unsigned int offset = 0;
-	unsigned int slot = 0;
 
 	for (int i = 0; i < modelData->numMeshes; ++i) {
-	//for (int i = modelData->numMeshes - 1; i >= 0; --i) {
 		deviceContext->IASetVertexBuffers(0, 1, &modelData->meshData[i].vertexBuffer, &stride, &offset);
 		deviceContext->IASetIndexBuffer(modelData->meshData[i].indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 		deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		deviceContext->DrawIndexed(modelData->meshData[i].numIndices, 0, 0);
-		//++slot;
 	}
 
 }
@@ -376,42 +373,6 @@ void Mesh::renderStatic(ID3D11DeviceContext* deviceContext) {
 
 }
 
-//bool Mesh::loadTest(const string fileName) {
-//	Assimp::Importer imp;
-//	const aiScene* scene = NULL;
-//	const aiMesh* mesh = NULL;
-//
-//	scene = imp.ReadFile(fileName, aiProcess_Triangulate);
-//	if (!scene) {
-//		MessageBox(NULL, L"Error read file", L"Error", MB_OK);
-//		return false;
-//	}
-//
-//	numVerts = numIndices = 0;
-//
-//	for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
-//		numVerts += scene->mMeshes[i]->mNumVertices;
-//		numIndices += scene->mMeshes[i]->mNumFaces * 3;
-//	}
-//
-//	stringstream sstest;
-//	sstest << "numVerts: " << numVerts << " numIndices: " << numIndices;
-//	string test = sstest.str();
-//	wstring wtest;
-//	for (int i = 0; i < test.size(); ++i)
-//		wtest += wchar_t(test[i]);
-//	MessageBox(NULL, wtest.c_str(), L"Seems ok here", MB_OK);
-//
-//	mesh = scene->mMeshes[0];
-//	if (!mesh) {
-//		MessageBox(NULL, L"Failed to find meshes", L"Error", MB_OK);
-//		return false;
-//	}
-//
-//
-//
-//	return true;
-//}
 
 
 int Mesh::getIndexCount() {
@@ -423,6 +384,8 @@ int Mesh::getIndexCount() {
 
 void Mesh::release() {
 
-	modelData->release();
-	delete modelData;
+	if (modelData) {
+		modelData->release();
+		delete modelData;
+	}
 }

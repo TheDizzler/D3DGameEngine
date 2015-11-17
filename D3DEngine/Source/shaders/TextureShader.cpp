@@ -9,21 +9,9 @@ TextureShader::TextureShader() {
 TextureShader::~TextureShader() {
 }
 
-//bool TextureShader::initialize(ID3D11Device *device, HWND hwnd, WCHAR * vsFilename, WCHAR * psFilename) {
-//
-//	if (!initializeShader(device, hwnd, L"./source/shaders/TextureVertexShader.hlsl", L"./source/shaders/TexturePixelShader.hlsl"))
-//		return false;
-//
-//	return true;
-//}
 
-void TextureShader::shutdown() {
+void TextureShader::release() {
 
-	sampleState->Release();
-	matrixBuffer->Release();
-	layout->Release();
-	pixelShader->Release();
-	vertexShader->Release();
 }
 
 bool TextureShader::render(ID3D11DeviceContext *deviceContext, int indexCount,
@@ -43,13 +31,7 @@ bool TextureShader::initializeShader(ID3D11Device * device, HWND hwnd, const WCH
 	ID3D10Blob* errorMessage;
 	ID3D10Blob* vertexShaderBuffer;
 	ID3D10Blob* pixelShaderBuffer;
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
-	unsigned int numElements;
-	D3D11_BUFFER_DESC matrixBufferDesc;
-
-	D3D11_SAMPLER_DESC samplerDesc;
-
-
+	
 
 		// Compile the vertex shader code.
 	if (FAILED(D3DCompileFromFile(vsFilename, NULL, NULL, "TextureVertexShader", Globals::VERTEX_SHADER_VERSION,
@@ -87,6 +69,7 @@ bool TextureShader::initializeShader(ID3D11Device * device, HWND hwnd, const WCH
 	}
 
 	// needs to match the VertexTexture stucture in the Model and in the shader.
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
 	polygonLayout[0].SemanticName = "POSITION";
 	polygonLayout[0].SemanticIndex = 0;
 	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
@@ -103,8 +86,7 @@ bool TextureShader::initializeShader(ID3D11Device * device, HWND hwnd, const WCH
 	polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[1].InstanceDataStepRate = 0;
 
-	// Get a count of the elements in the layout.
-	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
+	unsigned int numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
 	if (FAILED(device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(),
 		vertexShaderBuffer->GetBufferSize(), &layout))) {
@@ -114,20 +96,42 @@ bool TextureShader::initializeShader(ID3D11Device * device, HWND hwnd, const WCH
 	vertexShaderBuffer->Release();
 	pixelShaderBuffer->Release();
 
+	
+
+	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+	if (FAILED(initMatrixBuffer(device))) {
+		MessageBox(NULL, L"Error creating Constant (Matrix) Buffer", L"ERROR", MB_OK);
+		return false;
+	}
+
+	if (FAILED(initSamplerState(device))) {
+		MessageBox(NULL, L"Error creating Sampler Shader", L"ERROR", MB_OK);
+		return false;
+	}
+
+	return true;
+}
+
+
+HRESULT TextureShader::initMatrixBuffer(ID3D11Device* device) {
+
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+	D3D11_BUFFER_DESC matrixBufferDesc;
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
+	matrixBufferDesc.ByteWidth = sizeof(ConstantMatrix);
 	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	matrixBufferDesc.MiscFlags = 0;
 	matrixBufferDesc.StructureByteStride = 0;
 
-	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	if (FAILED(device->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer))) {
-		return false;
-	}
+	return device->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
+}
 
-		// Create a texture sampler state description.
+
+HRESULT TextureShader::initSamplerState(ID3D11Device* device) {
+
+	// Texture sampler state
+	D3D11_SAMPLER_DESC samplerDesc;
 	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -142,12 +146,7 @@ bool TextureShader::initializeShader(ID3D11Device * device, HWND hwnd, const WCH
 	samplerDesc.MinLOD = 0;
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	// Create the texture sampler state.
-	if (FAILED(device->CreateSamplerState(&samplerDesc, &sampleState))) {
-		return false;
-	}
-
-	return true;
+	return device->CreateSamplerState(&samplerDesc, &sampleState);
 }
 
 
@@ -156,7 +155,7 @@ bool TextureShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMA
 
 
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	MatrixBufferType* dataPtr;
+	ConstantMatrix* dataPtr;
 	unsigned int bufferNumber;
 
 
@@ -171,7 +170,7 @@ bool TextureShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMA
 	}
 
 	// Get a pointer to the data in the constant buffer.
-	dataPtr = (MatrixBufferType*) mappedResource.pData;
+	dataPtr = (ConstantMatrix*) mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
 	dataPtr->world = worldMatrix;

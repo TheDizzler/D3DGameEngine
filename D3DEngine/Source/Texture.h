@@ -1,7 +1,7 @@
 #pragma once
 
-#include <d3d11.h>
-#include <stdio.h>
+#include "D3DEnginePCH.h"
+#include "Utils.h"
 
 #include "DDSTextureLoader.h"
 #include "WICTextureLoader.h"

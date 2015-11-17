@@ -10,6 +10,8 @@ ShaderBase::~ShaderBase() {
 
 	if (matrixBuffer)
 		matrixBuffer->Release();
+	if (sampleState)
+		sampleState->Release();
 	if (layout)
 		layout->Release();
 	if (pixelShader)

@@ -10,11 +10,9 @@ LightShader::~LightShader() {
 }
 
 
-void LightShader::shutdown() {
+void LightShader::release() {
 	if (lightBuffer)
 		lightBuffer->Release();
-	if (sampleState)
-		sampleState->Release();
 }
 
 
@@ -23,11 +21,7 @@ bool LightShader::initializeShader(ID3D11Device * device, HWND hwnd, const WCHAR
 	ID3D10Blob* errorMessage;
 	ID3D10Blob* vertexShaderBuffer;
 	ID3D10Blob* pixelShaderBuffer;
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[4];
-	unsigned int numElements;
-	D3D11_BUFFER_DESC matrixBufferDesc;
-	D3D11_SAMPLER_DESC samplerDesc;
-	D3D11_BUFFER_DESC lightBufferDesc;
+	
 
 
 	// Compile the vertex shader code.
@@ -67,7 +61,8 @@ bool LightShader::initializeShader(ID3D11Device * device, HWND hwnd, const WCHAR
 		return false;
 	}
 
-	// needs to match the VertexTexture stucture in the Model and in the shader.
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[4];
+	// needs to match the VertexTexture stucture in the Model/Mesh and in the shader.
 	polygonLayout[0].SemanticName = "POSITION";
 	polygonLayout[0].SemanticIndex = 0;
 	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
@@ -102,7 +97,8 @@ bool LightShader::initializeShader(ID3D11Device * device, HWND hwnd, const WCHAR
 	polygonLayout[3].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[3].InstanceDataStepRate = 0;
 
-	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
+
+	unsigned int numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
 	if (FAILED(device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(),
 		vertexShaderBuffer->GetBufferSize(), &layout))) {
@@ -113,19 +109,59 @@ bool LightShader::initializeShader(ID3D11Device * device, HWND hwnd, const WCHAR
 	vertexShaderBuffer->Release();
 	pixelShaderBuffer->Release();
 
+
+	if (FAILED(initMatrixBuffer(device))) {
+		MessageBox(NULL, L"Error creating Constant (Matrix) Buffer", L"ERROR", MB_OK);
+		return false;
+	}
+
+	if (FAILED(initSamplerState(device))) {
+		MessageBox(NULL, L"Error creating Sampler Shader", L"ERROR", MB_OK);
+		return false;
+	}
+
+	if (FAILED(initLightBuffer(device))) {
+		return false;
+	}
+
+	return true;
+}
+
+
+HRESULT LightShader::initLightBuffer(ID3D11Device* device) {
+
+	// light dynamic constant buffer description
+	// Note that ByteWidth always needs to be a multiple of 16 if using D3D11_BIND_CONSTANT_BUFFER or CreateBuffer will fail.
+	D3D11_BUFFER_DESC lightBufferDesc;
+	lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	lightBufferDesc.ByteWidth = sizeof(DiffuseLightBuffer);
+	lightBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	lightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	lightBufferDesc.MiscFlags = 0;
+	lightBufferDesc.StructureByteStride = 0;
+
+	return device->CreateBuffer(&lightBufferDesc, NULL, &lightBuffer);
+}
+
+
+HRESULT LightShader::initMatrixBuffer(ID3D11Device* device) {
+
+	D3D11_BUFFER_DESC matrixBufferDesc;
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
+	matrixBufferDesc.ByteWidth = sizeof(ConstantMatrix);
 	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	matrixBufferDesc.MiscFlags = 0;
 	matrixBufferDesc.StructureByteStride = 0;
 
-	if (FAILED(device->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer))) {
-		MessageBox(NULL, L"Error creating Constant Buffer", L"ERROR", MB_OK);
-		return false;
-	}
+	return device->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
+}
 
-	// Texture sampler state description.
+
+HRESULT LightShader::initSamplerState(ID3D11Device* device) {
+
+	// Texture sampler state
+	D3D11_SAMPLER_DESC samplerDesc;
 	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -140,26 +176,7 @@ bool LightShader::initializeShader(ID3D11Device * device, HWND hwnd, const WCHAR
 	samplerDesc.MinLOD = 0;
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	// Create the texture sampler state.
-	if (FAILED(device->CreateSamplerState(&samplerDesc, &sampleState))) {
-		MessageBox(NULL, L"Error creating Sampler Shader", L"ERROR", MB_OK);
-		return false;
-	}
-
-	// light dynamic constant buffer description
-	// Note that ByteWidth always needs to be a multiple of 16 if using D3D11_BIND_CONSTANT_BUFFER or CreateBuffer will fail.
-	lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	lightBufferDesc.ByteWidth = sizeof(DiffuseLightBuffer);
-	lightBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	lightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	lightBufferDesc.MiscFlags = 0;
-	lightBufferDesc.StructureByteStride = 0;
-
-	if (FAILED(device->CreateBuffer(&lightBufferDesc, NULL, &lightBuffer))) {
-		return false;
-	}
-
-	return true;
+	return device->CreateSamplerState(&samplerDesc, &sampleState);
 }
 
 
@@ -172,6 +189,7 @@ bool LightShader::render(ID3D11DeviceContext *deviceContext, Mesh* mesh, XMMATRI
 	}
 
 	renderShader(deviceContext, mesh->getIndexCount());
+	return true;
 }
 
 
@@ -183,7 +201,7 @@ bool LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATR
 
 
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	MatrixBufferType* dataPtr;
+	ConstantMatrix* dataPtr;
 	unsigned int bufferNumber;
 
 
@@ -196,7 +214,7 @@ bool LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATR
 		return false;
 	}
 
-	dataPtr = (MatrixBufferType*) mappedResource.pData;
+	dataPtr = (ConstantMatrix*) mappedResource.pData;
 
 	dataPtr->world = worldMatrix;
 	dataPtr->view = viewMatrix;
@@ -206,7 +224,6 @@ bool LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATR
 	bufferNumber = 0;
 
 	for (int i = 0; i < mesh->modelData->numMeshes; ++i) {
-	//for (int i = mesh->modelData->numMeshes - 1; i >= 0; --i) {
 		Mesh::MeshData data = mesh->modelData->meshData[i];
 		ID3D11ShaderResourceView* texture;
 
@@ -260,7 +277,7 @@ bool LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATR
 
 
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	MatrixBufferType* dataPtr;
+	ConstantMatrix* dataPtr;
 	unsigned int bufferNumber;
 
 
@@ -273,7 +290,7 @@ bool LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATR
 		return false;
 	}
 
-	dataPtr = (MatrixBufferType*) mappedResource.pData;
+	dataPtr = (ConstantMatrix*) mappedResource.pData;
 
 	dataPtr->world = worldMatrix;
 	dataPtr->view = viewMatrix;

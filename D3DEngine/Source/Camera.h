@@ -1,7 +1,6 @@
 #pragma once
 
-#include <DirectXMath.h>
-//#include "globals.h"
+
 
 using namespace DirectX;
 
@@ -22,6 +21,8 @@ public:
 	void getViewMatrix(XMMATRIX&);
 	XMMATRIX getViewMatrix();
 private:
+
+
 	float positionX, positionY, positionZ;
 	float rotationX, rotationY, rotationZ;
 	XMMATRIX viewMatrix;

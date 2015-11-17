@@ -10,18 +10,7 @@ ColorShader::~ColorShader() {
 }
 
 
-//bool ColorShader::initialize(ID3D11Device* device, HWND hwnd) {
-//	bool result;
-//
-//	if (!initializeShader(device, hwnd, L"./source/shaders/VertexShader.hlsl", L"./source/shaders/PixelShader.hlsl")) {
-//		return false;
-//	}
-//
-//	return true;
-//}
-
-
-void ColorShader::shutdown() {
+void ColorShader::release() {
 
 	if(matrixBuffer) {
 		matrixBuffer->Release();
@@ -61,9 +50,7 @@ bool ColorShader::initializeShader(ID3D11Device* device, HWND hwnd, const WCHAR*
 	ID3D10Blob* errorMessage;
 	ID3D10Blob* vertexShaderBuffer;
 	ID3D10Blob* pixelShaderBuffer;
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
-	unsigned int numElements;
-	D3D11_BUFFER_DESC matrixBufferDesc;
+	
 
 	errorMessage = 0;
 	vertexShaderBuffer = 0;
@@ -109,6 +96,7 @@ bool ColorShader::initializeShader(ID3D11Device* device, HWND hwnd, const WCHAR*
 		return false;
 	}
 
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
 	polygonLayout[0].SemanticName = "POSITION";
 	polygonLayout[0].SemanticIndex = 0;
 	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
@@ -125,8 +113,9 @@ bool ColorShader::initializeShader(ID3D11Device* device, HWND hwnd, const WCHAR*
 	polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[1].InstanceDataStepRate = 0;
 
+	
 	// Get a count of the elements in the layout.
-	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
+	unsigned int numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
 	if (FAILED(device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(),
 		vertexShaderBuffer->GetBufferSize(), &layout))) {
@@ -138,15 +127,8 @@ bool ColorShader::initializeShader(ID3D11Device* device, HWND hwnd, const WCHAR*
 	pixelShaderBuffer->Release();
 
 
-	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
-	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	matrixBufferDesc.MiscFlags = 0;
-	matrixBufferDesc.StructureByteStride = 0;
-
-	if (FAILED(device->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer))) {
-		MessageBox(hwnd, L"Error creating constant buffer.", L"ERROR", MB_OK);
+	if (FAILED(initMatrixBuffer(device))) {
+		MessageBox(NULL, L"Error creating Constant (Matrix) Buffer", L"ERROR", MB_OK);
 		return false;
 	}
 
@@ -154,14 +136,30 @@ bool ColorShader::initializeShader(ID3D11Device* device, HWND hwnd, const WCHAR*
 }
 
 
+HRESULT ColorShader::initMatrixBuffer(ID3D11Device* device) {
 
+	D3D11_BUFFER_DESC matrixBufferDesc;
+	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	matrixBufferDesc.ByteWidth = sizeof(ConstantMatrix);
+	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	matrixBufferDesc.MiscFlags = 0;
+	matrixBufferDesc.StructureByteStride = 0;
+
+	return device->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
+}
+
+/** Color Shaders do not use sampler state (no textures). */
+HRESULT ColorShader::initSamplerState(ID3D11Device * device) {
+	return E_NOTIMPL;
+}
 
 
 bool ColorShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix,
 	XMMATRIX viewMatrix, XMMATRIX projectionMatrix) {
 
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	MatrixBufferType* dataPtr;
+	ConstantMatrix* dataPtr;
 	unsigned int bufferNumber;
 
 	// Transpose the matrices to prepare them for the shader. ***Mandatory in DX11***
@@ -175,7 +173,7 @@ bool ColorShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATR
 		return false;
 	}
 
-	dataPtr = (MatrixBufferType*) mappedResource.pData;
+	dataPtr = (ConstantMatrix*) mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
 	dataPtr->world = worldMatrix;

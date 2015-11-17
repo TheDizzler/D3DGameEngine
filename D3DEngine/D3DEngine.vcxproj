@@ -99,13 +99,13 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>
-      </AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>source/shaders;source</AdditionalIncludeDirectories>
+      <PrecompiledHeaderFile>D3DEnginePCH.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>D3DEnginePCH.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -133,12 +133,14 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>source/shaders;source</AdditionalIncludeDirectories>
+      <PrecompiledHeaderFile>D3DEnginePCH.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>D3DEnginePCH.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -153,38 +155,47 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Camera.cpp" />
-    <ClCompile Include="Source\ColorShader.cpp" />
     <ClCompile Include="Source\D3D.cpp" />
+    <ClCompile Include="Source\D3DEnginePCH.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D3DEnginePCH.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">D3DEnginePCH.h</PrecompiledHeaderFile>
+    </ClCompile>
     <ClCompile Include="Source\DiffuseLight.cpp" />
     <ClCompile Include="Source\GraphicsEngine.cpp" />
     <ClCompile Include="Source\Input.cpp" />
-    <ClCompile Include="Source\LightShader.cpp" />
     <ClCompile Include="source\LightSource.cpp" />
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\Mesh.cpp" />
     <ClCompile Include="Source\Model.cpp" />
-    <ClCompile Include="Source\ShaderBase.cpp" />
+    <ClCompile Include="Source\shaders\ColorShader.cpp" />
+    <ClCompile Include="Source\shaders\LightShader.cpp" />
+    <ClCompile Include="Source\shaders\ShaderBase.cpp" />
+    <ClCompile Include="Source\shaders\ShaderManager.cpp" />
+    <ClCompile Include="Source\shaders\TextureShader.cpp" />
     <ClCompile Include="Source\TextFactory.cpp" />
     <ClCompile Include="Source\Texture.cpp" />
-    <ClCompile Include="Source\TextureShader.cpp" />
     <ClCompile Include="Source\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Camera.h" />
-    <ClInclude Include="Source\ColorShader.h" />
     <ClInclude Include="Source\D3D.h" />
+    <ClInclude Include="Source\D3DEnginePCH.h" />
     <ClInclude Include="Source\DiffuseLight.h" />
     <ClInclude Include="Source\Globals.h" />
     <ClInclude Include="Source\GraphicsEngine.h" />
     <ClInclude Include="Source\Input.h" />
-    <ClInclude Include="Source\LightShader.h" />
     <ClInclude Include="Source\LightSource.h" />
     <ClInclude Include="Source\Mesh.h" />
     <ClInclude Include="Source\Model.h" />
-    <ClInclude Include="Source\ShaderBase.h" />
+    <ClInclude Include="Source\shaders\ColorShader.h" />
+    <ClInclude Include="Source\shaders\LightShader.h" />
+    <ClInclude Include="Source\shaders\ShaderBase.h" />
+    <ClInclude Include="Source\shaders\ShaderManager.h" />
+    <ClInclude Include="Source\shaders\TextureShader.h" />
     <ClInclude Include="Source\TextFactory.h" />
     <ClInclude Include="Source\Texture.h" />
-    <ClInclude Include="Source\TextureShader.h" />
     <ClInclude Include="Source\Utils.h" />
   </ItemGroup>
   <ItemGroup>
