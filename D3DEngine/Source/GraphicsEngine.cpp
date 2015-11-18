@@ -68,6 +68,7 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 	return true;
 }
 
+
 /** Displays all display drivers on screen */
 void GraphicsEngine::testText() {
 
@@ -79,10 +80,43 @@ void GraphicsEngine::testText() {
 	int memory;
 	getVideoCardInfo(cardName, memory);
 
+	wchar_t* feats;
+	switch (featureLevel) {
+		case 0x9100:
+			feats = L"D3D_FEATURE_LEVEL_9_1";
+			break;
+		case 0x9200:
+			feats = L"D3D_FEATURE_LEVEL_9_2";
+			break;
+		case 0x9300:
+			feats = L"D3D_FEATURE_LEVEL_9_3";
+			break;
+		case 0xa000:
+			feats = L"D3D_FEATURE_LEVEL_10_0";
+			break;
+		case 0xa100:
+			feats = L"D3D_FEATURE_LEVEL_10_1";
+			break;
+		case 0xb000:
+			feats = L"D3D_FEATURE_LEVEL_11_0";
+			break;
+		case 0xb100:
+			feats = L"D3D_FEATURE_LEVEL_11_1";
+			break;
+		case 0xc000:
+			feats = L"D3D_FEATURE_LEVEL_12_0";
+			break;
+		case 0xc100:
+			feats = L"D3D_FEATURE_LEVEL_12_1";
+			break;
+
+	}
+
 	wostringstream ws1;
-	ws1 << "cardName: " << cardName << "   Memory: " << memory << "MBs";
+	ws1 << "cardName: " << cardName << " Memory: " << memory << "MBs" << " featureLevel: " << feats;
 	wstring str(ws1.str());
 	textFactory->editText(displayInfoText, str);
+
 
 	int i = 0;
 	for (IDXGIAdapter* adapter : adapters) {
@@ -97,6 +131,7 @@ void GraphicsEngine::testText() {
 		textFactory->editText(label, str);
 	}
 
+	++i;
 	for (IDXGIOutput* output : adapterOutputs) {
 
 		TextLabel* label = textFactory->createText(L"Nashi", 50, 175 + i++ * 20, 15);
@@ -109,6 +144,7 @@ void GraphicsEngine::testText() {
 		textFactory->editText(label, str);
 	}
 
+	++i;
 	TextLabel* label = textFactory->createText(L"Nashi", 50, 175 + i++ * 20, 15);
 	wostringstream modes;
 	modes << "numModes: " << numModes << "\n";
@@ -134,7 +170,7 @@ void GraphicsEngine::update(double time, int fps) {
 	wstring str(ws.str());
 	textFactory->editText(timer, str);
 
-	
+
 
 
 	rotation += (float) XM_PI * 0.005f;
@@ -179,9 +215,9 @@ void GraphicsEngine::shutdown() {
 
 	if (light)
 		delete light;
-	if (shaders) 
+	if (shaders)
 		shaders->release();
-	
+
 
 
 	if (mesh)

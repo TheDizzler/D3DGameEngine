@@ -8,11 +8,27 @@
 
 class ShaderManager {
 public:
+
+	/* Constant Buffers store shader variables that remain constant during a draw call. */
+	enum ConstantBuffer {
+		ApplicationBuffer,	// variables that rarely change, ex: camera projection matrix
+		FrameBuffer,		// variables that change each frame ex: camera view matrix
+		ObjectBuffer,		// variables that are different for every object rendered
+		NumConstantBuffers
+	};
+
+	ID3D11Buffer* constantBuffers[NumConstantBuffers];
+
+
 	ShaderManager();
 	~ShaderManager();
 
 	bool initializeManager(ID3D11Device* device, HWND hwnd);
 	void release();
+
+	//template< class BaseShader >
+	//BaseShader* LoadShader(const std::wstring& fileName, const std::string& entryPoint, const std::string& profile);
+
 
 	ColorShader* colorShader = 0;
 	LightShader* lightShader = 0;

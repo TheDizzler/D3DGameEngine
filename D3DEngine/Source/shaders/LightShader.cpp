@@ -21,7 +21,7 @@ bool LightShader::initializeShader(ID3D11Device * device, HWND hwnd, const WCHAR
 	ID3D10Blob* errorMessage;
 	ID3D10Blob* vertexShaderBuffer;
 	ID3D10Blob* pixelShaderBuffer;
-	
+
 
 
 	// Compile the vertex shader code.
@@ -202,7 +202,7 @@ bool LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATR
 
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	ConstantMatrix* dataPtr;
-	unsigned int bufferNumber;
+	unsigned int bufferNumber =0;
 
 
 	// Transpose the matrices to prepare them for the shader.
@@ -210,20 +210,22 @@ bool LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATR
 	viewMatrix = XMMatrixTranspose(viewMatrix);
 	projectionMatrix = XMMatrixTranspose(projectionMatrix);
 
-	if (FAILED(deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource))) {
-		return false;
-	}
-
-	dataPtr = (ConstantMatrix*) mappedResource.pData;
-
-	dataPtr->world = worldMatrix;
-	dataPtr->view = viewMatrix;
-	dataPtr->projection = projectionMatrix;
-
-	deviceContext->Unmap(matrixBuffer, 0);
-	bufferNumber = 0;
-
+	
 	for (int i = 0; i < mesh->modelData->numMeshes; ++i) {
+		if (FAILED(deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource))) {
+			return false;
+		}
+
+		dataPtr = (ConstantMatrix*) mappedResource.pData;
+
+		dataPtr->world = worldMatrix;
+		dataPtr->view = viewMatrix;
+		dataPtr->projection = projectionMatrix;
+
+		deviceContext->Unmap(matrixBuffer, 0);
+		bufferNumber = 0;
+
+
 		Mesh::MeshData data = mesh->modelData->meshData[i];
 		ID3D11ShaderResourceView* texture;
 
@@ -250,6 +252,7 @@ bool LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATR
 		deviceContext->Unmap(lightBuffer, 0);	// Unlock the constant buffer.
 		bufferNumber = 0;
 		deviceContext->PSSetConstantBuffers(bufferNumber, 1, &lightBuffer);
+		//renderShader(deviceContext, data.numIndices);
 	}
 	return true;
 }

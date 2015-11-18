@@ -19,7 +19,7 @@ GraphicsEngine* gfxEngine;
 
 int messageLoop();
 
-bool initWindow(HINSTANCE hInstance, int showWnd, int width, int height, bool windowed);
+bool initWindow(HINSTANCE hInstance, int showWnd, bool windowed);
 LRESULT CALLBACK wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 
@@ -42,15 +42,22 @@ void shutdown() {
 @nShowWnd how window should be displayed. Examples: SW_SHOWMAXIMIZED, SW_SHOW, SW_SHOWMINIMIZED. */
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
 
-	gfxEngine = new GraphicsEngine();
+	// Check for DirectX Math library support.
+	if (!XMVerifyCPUSupport()) {
+		MessageBox(nullptr, TEXT("Failed to verify DirectX Math library support."), TEXT("Error"), MB_OK);
+		return 0;
+	}
 
-	if (!initWindow(hInstance, nShowCmd, Globals::WINDOW_WIDTH, Globals::WINDOW_HEIGHT, true)) {
+
+	if (!initWindow(hInstance, nShowCmd, true)) {
 		MessageBox(0, TEXT("Window Initialization - Failed"), L"Error", MB_OK);
 		shutdown();
 		return 0;
 
 	}
 
+
+	gfxEngine = new GraphicsEngine();
 	if (!gfxEngine->initGFXEngine(hInstance, hwnd)) {
 		MessageBox(0, L"Direct3D Initialization Failed", L"Error", MB_OK);
 		shutdown();
@@ -150,20 +157,20 @@ int messageLoop() {
 }
 
 
-bool initWindow(HINSTANCE hInstance, int showWnd, int width, int height, bool windowed) {
+bool initWindow(HINSTANCE hInstance, int showWnd, bool windowed) {
 
 	WNDCLASSEX wc;
 
 	wc.cbSize = sizeof(WNDCLASSEX);
-	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	wc.lpfnWndProc = wndProc;
+	wc.style = CS_HREDRAW | CS_VREDRAW;
+	wc.lpfnWndProc = &wndProc;
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	wc.hInstance = hInstance;
 	wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
 	wc.hIconSm = wc.hIcon;
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);	// mo' mouse cursors http://msdn.microsoft.com/en-us/library/ms648391(VS.85).aspx
-	wc.hbrBackground = (HBRUSH) GetStockObject(BLACK_BRUSH);
+	wc.hbrBackground = (HBRUSH) (COLOR_WINDOW + 1);
 	wc.lpszMenuName = NULL;
 	wc.lpszClassName = Globals::appName;
 	wc.hIconSm = LoadIcon(NULL, IDI_WINLOGO);	// taskbar icon
@@ -174,18 +181,22 @@ bool initWindow(HINSTANCE hInstance, int showWnd, int width, int height, bool wi
 		return false;
 	}
 
-	// Determine the resolution of the clients desktop screen.
-	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	
 
-	DEVMODE dmScreenSettings;
+	
 	int posX, posY;
 
 	if (Globals::FULL_SCREEN) {
+
+		// Determine the resolution of the clients desktop screen.
+		Globals::WINDOW_WIDTH = GetSystemMetrics(SM_CXSCREEN);
+		Globals::WINDOW_HEIGHT = GetSystemMetrics(SM_CYSCREEN);
+
+		DEVMODE dmScreenSettings;
 		memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
 		dmScreenSettings.dmSize = sizeof(dmScreenSettings);
-		dmScreenSettings.dmPelsWidth = (unsigned long) screenWidth;
-		dmScreenSettings.dmPelsHeight = (unsigned long) screenHeight;
+		dmScreenSettings.dmPelsWidth = (unsigned long) Globals::WINDOW_WIDTH;
+		dmScreenSettings.dmPelsHeight = (unsigned long) Globals::WINDOW_HEIGHT;
 		dmScreenSettings.dmBitsPerPel = 32;
 		dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
 		ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
@@ -193,22 +204,18 @@ bool initWindow(HINSTANCE hInstance, int showWnd, int width, int height, bool wi
 		// Set the position of the window to the top left corner.
 		posX = posY = 0;
 	} else {
-		// If windowed then set it to 800x600 resolution.
-		screenWidth = Globals::WINDOW_WIDTH;
-		screenHeight = Globals::WINDOW_HEIGHT;
-
-		// Place the window in the middle of the screen.
-		posX = (GetSystemMetrics(SM_CXSCREEN) - screenWidth) / 2;
-		posY = (GetSystemMetrics(SM_CYSCREEN) - screenHeight) / 2;
+		// If windowed then set it to global default resolution
+		// and place the window in the middle of the screen.
+		posX = (GetSystemMetrics(SM_CXSCREEN) - Globals::WINDOW_WIDTH) / 2;
+		posY = (GetSystemMetrics(SM_CYSCREEN) - Globals::WINDOW_HEIGHT) / 2;
 	}
 
-	hwnd = CreateWindowEx(
-		WS_EX_APPWINDOW,
+	hwnd = CreateWindow(
 		Globals::appName,
 		Globals::appName,				// title bar text
-		WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP,
+		WS_OVERLAPPEDWINDOW,
 		posX, posY,
-		screenWidth, screenHeight,
+		Globals::WINDOW_WIDTH, Globals::WINDOW_HEIGHT,
 		NULL,							// handle to parent window
 		NULL,							// handle to a menu
 		hInstance,						// instance of current program

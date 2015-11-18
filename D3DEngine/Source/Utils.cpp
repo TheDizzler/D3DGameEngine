@@ -9,3 +9,9 @@ void Utils::ErrorMessage(stringstream& msg) {
 		wstr += wchar_t(str[i]);
 	MessageBox(NULL, wstr.c_str(), L"This is an Error Msg", MB_OK);
 }
+
+
+void Utils::QuickMessage(wchar_t* msg) {
+
+	MessageBox(NULL, msg, L"This is an Quick Msg", MB_OK);
+}

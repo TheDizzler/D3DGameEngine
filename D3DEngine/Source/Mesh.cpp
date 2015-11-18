@@ -1,6 +1,6 @@
 #include "Mesh.h"
 
-
+#include <wchar.h>
 
 Mesh::Mesh() {
 }
@@ -173,6 +173,7 @@ bool Mesh::initFromScene(ID3D11Device* device, const aiScene* scene) {
 			wchar_t wcstring[newsize];
 			mbstowcs_s(&convertedChars, wcstring, origsize, path.data, _TRUNCATE);
 			wcscat_s(wcstring, L"");
+
 
 			wstring out = wstring(modelData->filepath.begin(), modelData->filepath.end());
 			out += wstring(wcstring);

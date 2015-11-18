@@ -211,6 +211,11 @@ TextLabel* TextFactory::createText(WCHAR* text, float xPos, float yPos, float fo
 
 void TextFactory::editText(TextLabel* label, wstring str) {
 
+	if (!label) {
+		Utils::QuickMessage(L"Null label sent to edit text");
+		return;
+	}
+
 	label->text = str;
 	/*if (label->textLayout) {
 		pDWriteFactory->CreateTextLayout(label->text.c_str(), static_cast<UINT32>(label->text.size()), pTextFormat, 0.0f, 0.0f, &label->textLayout);

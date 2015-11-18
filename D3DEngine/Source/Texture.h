@@ -45,5 +45,7 @@ private:
 	ID3D11Texture2D* texture2d = 0; // used for TGA files
 	ID3D11Resource* texture = 0;
 	ID3D11ShaderResourceView* textureView = 0;
+
+	wchar_t textureName[50];
 };
 

@@ -22,10 +22,7 @@ bool Texture::initialize(ID3D11Device* device, const wchar_t* filename) {
 		return false;
 	}
 
-	/*texture->
-
-	D3D11_TEXTURE2D_DESC desc;
-	texture2d->GetDesc(&desc);*/
+	wcscpy(textureName, filename);
 
 	return true;
 }
@@ -131,9 +128,10 @@ void Texture::shutdown() {
 
 ID3D11ShaderResourceView* Texture::getTexture() {
 	//if (textureView)
-		return textureView;
-	/*else
-		return NULL;*/
+	//MessageBox(NULL, textureName, L"Check Getting Texture", MB_OK); // check if filenames are correct
+	return textureView;
+/*else
+	return NULL;*/
 }
 
 
