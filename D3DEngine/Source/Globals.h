@@ -24,7 +24,7 @@ namespace Globals {
 	static float SCREEN_NEAR = 0.1f;
 	static float SCREEN_DEPTH = 1000.0f;
 
-
+	
 	const std::string ASSETS_DIR = "..\\Assets\\";
 
 

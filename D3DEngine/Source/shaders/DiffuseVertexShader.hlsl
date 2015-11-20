@@ -4,17 +4,16 @@ cbuffer MatrixBuffer {
 	matrix projectionMatrix;
 };
 
-
 struct VertexShaderInput {
 	float4 position : POSITION;
-	float2 tex : TEXCOORD0;
+	float2 tex : TEXCOORD;
 	float3 normal : NORMAL;
 	float3 tangent : TANGENT;
 };
 
 struct PixelShaderInput {
 	float4 position : SV_POSITION;
-	float2 tex : TEXCOORD0;
+	float2 tex : TEXCOORD;
 	float3 normal : NORMAL;
 	float3 tangent : TANGENT;
 };
@@ -36,6 +35,10 @@ PixelShaderInput DiffuseLightVertexShader(VertexShaderInput input) {
 	// Calculate the normal vector against the world matrix only.
 	output.normal = mul(input.normal, (float3x3)worldMatrix);
 	output.normal = normalize(output.normal);
+
+	// not sure if this done right
+	output.tangent = mul(input.tangent, (float3x3) worldMatrix);
+	output.tangent = normalize(output.tangent);
 
 	return output;
 }

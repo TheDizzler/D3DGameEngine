@@ -4,7 +4,7 @@
 #include "D3D.h"
 #include "TextFactory.h"
 #include "Camera.h"
-#include "Model.h"
+//#include "Model.h"
 #include "ShaderManager.h"
 
 
@@ -12,6 +12,17 @@
 	elements but this will eventually be changed. */
 class GraphicsEngine : public D3D {
 public:
+
+	/* Constant Buffers store shader variables that remain constant during a draw call. */
+	enum ConstantBuffer {
+		ApplicationBuffer,	// variables that rarely change, ex: camera projection matrix
+		PerFrameBuffer,		// variables that change each frame ex: camera view matrix
+		PerObjectBuffer,	// variables that are different for every object rendered
+		NumConstantBuffers
+	};
+
+	ID3D11Buffer* constantBuffers[NumConstantBuffers];
+
 
 	TextFactory *textFactory = 0;
 	TextLabel *timer = 0;
@@ -27,18 +38,31 @@ public:
 	//void endDraw();
 	void update(double time, int fps);
 	
-
+	void initializeViewPort();
 
 private:
 
 	Camera* camera = 0;
 	DiffuseLight* light = 0;
-	Model* model = 0;
-	Mesh* mesh = 0;
+	//Model* model = 0;
+	MeshLoader* meshLoader = 0;
 
-	ShaderManager* shaders = 0;
+	ShaderManager* shaderManager = 0;
 
-	float bgColor[4];
+	float clearDepth = 1.0f;
+	float clearStencil = 0.0f;
+
+	D3D11_VIEWPORT viewport = {0};
+
+	/* Used to transform objects vertices from view space to clip space. */
+	XMMATRIX projectionMatrix;
+	//XMMATRIX worldMatrix; // this is a per object matrix
+	XMMATRIX viewMatrix;
+	//XMMATRIX orthoMatrix;
+
+	float clearColor[4];
+
+	bool createConstantBuffer();
 
 	void testText();
 

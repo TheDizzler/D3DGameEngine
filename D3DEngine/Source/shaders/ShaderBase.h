@@ -2,7 +2,7 @@
 
 
 #include "Globals.h"
-#include "Mesh.h"
+#include "MeshLoader.h"
 
 
 using namespace DirectX;
@@ -11,6 +11,10 @@ using namespace std;
 /** Base class for shaders. This is to make it easier to play with different shader types. */
 class ShaderBase {
 protected:
+
+	
+
+	
 	struct ConstantMatrix {
 		XMMATRIX world;
 		XMMATRIX view;
@@ -25,6 +29,7 @@ public:
 	bool initialize(ID3D11Device* device, HWND hwnd, const WCHAR * vsFilename, const WCHAR * psFilename);
 	virtual void release() = 0;
 
+	virtual ID3D11InputLayout* getLayout() = 0;
 
 protected:
 
@@ -32,6 +37,7 @@ protected:
 		const WCHAR* vsFilename, const WCHAR* psFilename) = 0;
 	virtual void renderShader(ID3D11DeviceContext* deviceContext, int indexCount) = 0;
 
+	virtual HRESULT initInputLayout(ID3D11Device* device, ID3D10Blob* vertexShaderBlob) = 0;
 	virtual HRESULT initMatrixBuffer(ID3D11Device* device) = 0;
 	virtual HRESULT initSamplerState(ID3D11Device* device) = 0;
 

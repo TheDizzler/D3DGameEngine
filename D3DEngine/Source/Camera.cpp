@@ -88,7 +88,7 @@ void Camera::render() {
 	viewMatrix = XMMatrixLookAtLH(positionVector, lookAtVector, upVector);
 }
 
-void Camera::getViewMatrix(XMMATRIX &view) {
+void Camera::setViewMatrix(XMMATRIX &view) {
 
 	view = viewMatrix;
 }

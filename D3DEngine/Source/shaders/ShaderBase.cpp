@@ -45,7 +45,7 @@ void ShaderBase::outputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, c
 	for (i = 0; i < bufferSize; i++) {
 		fout << compileErrors[i];
 	}
-
+	OutputDebugStringA(compileErrors);
 	fout.close();
 	errorMessage->Release();
 	MessageBox(hwnd, L"Error compiling shader.  Check shader-error.txt for message.", shaderFilename, MB_OK);

@@ -37,5 +37,8 @@ PixelShaderInput LightVertexShader(VertexShaderInput input) {
 	output.normal = mul(input.normal, (float3x3)worldMatrix);
 	output.normal = normalize(output.normal);
 
+	output.tangent = mul(input.tangent, (float3x3) worldMatrix);
+	output.tangent = normalize(output.tangent);
+
 	return output;
 }

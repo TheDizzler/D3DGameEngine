@@ -167,8 +167,9 @@
     <ClCompile Include="Source\Input.cpp" />
     <ClCompile Include="source\LightSource.cpp" />
     <ClCompile Include="Source\main.cpp" />
-    <ClCompile Include="Source\Mesh.cpp" />
+    <ClCompile Include="Source\MeshLoader.cpp" />
     <ClCompile Include="Source\Model.cpp" />
+    <ClCompile Include="Source\shaders\BaseShader.cpp" />
     <ClCompile Include="Source\shaders\ColorShader.cpp" />
     <ClCompile Include="Source\shaders\LightShader.cpp" />
     <ClCompile Include="Source\shaders\ShaderBase.cpp" />
@@ -187,8 +188,9 @@
     <ClInclude Include="Source\GraphicsEngine.h" />
     <ClInclude Include="Source\Input.h" />
     <ClInclude Include="Source\LightSource.h" />
-    <ClInclude Include="Source\Mesh.h" />
-    <ClInclude Include="Source\Model.h" />
+    <ClInclude Include="Source\MeshLoader.h" />
+    <ClInclude Include="Source\model.h" />
+    <ClInclude Include="Source\shaders\BaseShader.h" />
     <ClInclude Include="Source\shaders\ColorShader.h" />
     <ClInclude Include="Source\shaders\LightShader.h" />
     <ClInclude Include="Source\shaders\ShaderBase.h" />
@@ -202,7 +204,7 @@
     <None Include="packages.config" />
     <None Include="Source\shaders\DiffusePixelShader.hlsl" />
     <None Include="Source\shaders\DiffuseVertexShader.hlsl" />
-    <None Include="Source\shaders\PixelShader.hlsl">
+    <None Include="Source\shaders\ColorPixelShader.hlsl">
       <FileType>Document</FileType>
     </None>
     <None Include="Source\shaders\TexturePixelShader.hlsl">
@@ -211,7 +213,7 @@
     <None Include="Source\shaders\TextureVertexShader.hlsl">
       <FileType>Document</FileType>
     </None>
-    <None Include="Source\shaders\VertexShader.hlsl">
+    <None Include="Source\shaders\ColorVertexShader.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>
@@ -225,6 +227,28 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="cube.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Source\shaders\ImpPixelShader.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Source\shaders\ImpVertexShader.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ImpVertexShader</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ImpVertexShader</EntryPointName>
+      <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DisableOptimizations>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_vs</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ImpVertexShader.h</HeaderFileOutput>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">g_vs</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ImpVertexShader.h</HeaderFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

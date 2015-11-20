@@ -7,6 +7,7 @@
 #include <dinput.h>
 #include <comdef.h>
 #include <stdio.h>
+#include <wchar.h>
 
 #include <fstream>
 #include <vector>
@@ -21,6 +22,11 @@
 #pragma comment (lib, "dinput8.lib")
 #pragma comment (lib, "dxguid.lib")
 
+enum TRESULTS {
+	NO_WORRIES,
+	PROBLEMS,
+	NO_SHADER_ERROR,
+};
 
 
 // Safely release a COM object.

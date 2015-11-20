@@ -11,58 +11,98 @@ LightShader::~LightShader() {
 
 
 void LightShader::release() {
-	if (lightBuffer)
-		lightBuffer->Release();
+	safeRelease(lightBuffer);
+}
+
+
+ID3D11InputLayout* LightShader::getLayout() {
+	return layout;
 }
 
 
 bool LightShader::initializeShader(ID3D11Device * device, HWND hwnd, const WCHAR * vsFilename, const WCHAR * psFilename) {
 
-	ID3D10Blob* errorMessage;
-	ID3D10Blob* vertexShaderBuffer;
-	ID3D10Blob* pixelShaderBuffer;
+	ID3D10Blob* errorBlob;
+	ID3D10Blob* vertexShaderBlob;
+	ID3D10Blob* pixelShaderBlob;
 
 
+	UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
+#if _DEBUG
+	flags |= D3DCOMPILE_DEBUG;
+#endif
 
 	// Compile the vertex shader code.
-	if (FAILED(D3DCompileFromFile(vsFilename, NULL, NULL, "DiffuseLightVertexShader", Globals::VERTEX_SHADER_VERSION,
-		D3D10_SHADER_ENABLE_STRICTNESS, 0, &vertexShaderBuffer, &errorMessage))) {
-		if (errorMessage) {
-			outputShaderErrorMessage(errorMessage, hwnd, vsFilename);
+	if (FAILED(D3DCompileFromFile(vsFilename, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		"DiffuseLightVertexShader", Globals::VERTEX_SHADER_VERSION,
+		flags, 0, &vertexShaderBlob, &errorBlob))) {
+		if (errorBlob) {
+			outputShaderErrorMessage(errorBlob, hwnd, vsFilename);
 		} else {
-			MessageBox(hwnd, vsFilename, L"Missing Shader File", MB_OK);
+			MessageBox(hwnd, vsFilename, L"Missing Vertex Shader File", MB_OK);
 		}
 
 		return false;
 	}
 
-	if (FAILED(D3DCompileFromFile(psFilename, NULL, NULL, "DiffuseLightPixelShader", Globals::PIXEL_SHADER_VERSION,
-		D3D10_SHADER_ENABLE_STRICTNESS, 0, &pixelShaderBuffer, &errorMessage))) {
-		if (errorMessage) {
-			outputShaderErrorMessage(errorMessage, hwnd, psFilename);
+	if (FAILED(D3DCompileFromFile(psFilename, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		"DiffuseLightPixelShader", Globals::PIXEL_SHADER_VERSION,
+		flags, 0, &pixelShaderBlob, &errorBlob))) {
+		if (errorBlob) {
+			outputShaderErrorMessage(errorBlob, hwnd, psFilename);
 		} else {
-			MessageBox(hwnd, psFilename, L"Missing Shader File", MB_OK);
+			MessageBox(hwnd, psFilename, L"Missing Pixel Shader File", MB_OK);
 		}
 
 		return false;
 	}
 
 	// Create the vertex shader from the buffer.
-	if (FAILED(device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(),
-		vertexShaderBuffer->GetBufferSize(), NULL, &vertexShader))) {
+	if (FAILED(device->CreateVertexShader(vertexShaderBlob->GetBufferPointer(),
+		vertexShaderBlob->GetBufferSize(), NULL, &vertexShader))) {
 		MessageBox(NULL, L"Error creating Vertex Shader", L"ERROR", MB_OK);
 		return false;
 	}
 
 	// Create the pixel shader from the buffer.
-	if (FAILED(device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(),
-		pixelShaderBuffer->GetBufferSize(), NULL, &pixelShader))) {
+	if (FAILED(device->CreatePixelShader(pixelShaderBlob->GetBufferPointer(),
+		pixelShaderBlob->GetBufferSize(), NULL, &pixelShader))) {
 		MessageBox(NULL, L"Error creating Pixel Shader", L"ERROR", MB_OK);
 		return false;
 	}
 
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[4];
+
+	if (FAILED(initInputLayout(device, vertexShaderBlob))) {
+		MessageBox(NULL, L"Error creating Input Layout Buffer", L"ERROR", MB_OK);
+		return false;
+	}
+
+	safeRelease(vertexShaderBlob);
+	safeRelease(pixelShaderBlob);
+
+
+	if (FAILED(initMatrixBuffer(device))) {
+		MessageBox(NULL, L"Error creating Constant (Matrix) Buffer", L"ERROR", MB_OK);
+		return false;
+	}
+
+	if (FAILED(initSamplerState(device))) {
+		MessageBox(NULL, L"Error creating Sampler Shader", L"ERROR", MB_OK);
+		return false;
+	}
+
+	if (FAILED(initLightBuffer(device))) {
+		return false;
+	}
+
+	return true;
+}
+
+
+HRESULT LightShader::initInputLayout(ID3D11Device* device, ID3D10Blob* vertexShaderBlob) {
+
 	// needs to match the VertexTexture stucture in the Model/Mesh and in the shader.
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[4];
 	polygonLayout[0].SemanticName = "POSITION";
 	polygonLayout[0].SemanticIndex = 0;
 	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
@@ -100,31 +140,12 @@ bool LightShader::initializeShader(ID3D11Device * device, HWND hwnd, const WCHAR
 
 	unsigned int numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
-	if (FAILED(device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(),
-		vertexShaderBuffer->GetBufferSize(), &layout))) {
+	if (FAILED(device->CreateInputLayout(polygonLayout, numElements,
+		vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize(), &layout))) {
 		MessageBox(NULL, L"Error creating Input Layout", L"ERROR", MB_OK);
 		return false;
 	}
 
-	vertexShaderBuffer->Release();
-	pixelShaderBuffer->Release();
-
-
-	if (FAILED(initMatrixBuffer(device))) {
-		MessageBox(NULL, L"Error creating Constant (Matrix) Buffer", L"ERROR", MB_OK);
-		return false;
-	}
-
-	if (FAILED(initSamplerState(device))) {
-		MessageBox(NULL, L"Error creating Sampler Shader", L"ERROR", MB_OK);
-		return false;
-	}
-
-	if (FAILED(initLightBuffer(device))) {
-		return false;
-	}
-
-	return true;
 }
 
 
@@ -180,8 +201,9 @@ HRESULT LightShader::initSamplerState(ID3D11Device* device) {
 }
 
 
-bool LightShader::render(ID3D11DeviceContext *deviceContext, Mesh* mesh, XMMATRIX worldMatrix,
+bool LightShader::render(ID3D11DeviceContext *deviceContext, MeshLoader* mesh, XMMATRIX worldMatrix,
 	XMMATRIX viewMatrix, XMMATRIX projectionMatrix, DiffuseLight* light) {
+
 
 	if (!setShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, mesh,
 		light->direction, light->diffuseColor, light->ambientColor)) {
@@ -196,13 +218,13 @@ bool LightShader::render(ID3D11DeviceContext *deviceContext, Mesh* mesh, XMMATRI
 
 
 bool LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix,
-	XMMATRIX viewMatrix, XMMATRIX projectionMatrix, Mesh* mesh,
+	XMMATRIX viewMatrix, XMMATRIX projectionMatrix, MeshLoader* mesh,
 	XMFLOAT3 lightDirection, XMFLOAT4 diffuseColor, XMFLOAT4 ambientColor) {
 
 
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	ConstantMatrix* dataPtr;
-	unsigned int bufferNumber =0;
+	unsigned int bufferNumber = 0;
 
 
 	// Transpose the matrices to prepare them for the shader.
@@ -210,7 +232,7 @@ bool LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATR
 	viewMatrix = XMMatrixTranspose(viewMatrix);
 	projectionMatrix = XMMatrixTranspose(projectionMatrix);
 
-	
+
 	for (int i = 0; i < mesh->modelData->numMeshes; ++i) {
 		if (FAILED(deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource))) {
 			return false;
@@ -226,7 +248,7 @@ bool LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATR
 		bufferNumber = 0;
 
 
-		Mesh::MeshData data = mesh->modelData->meshData[i];
+		MeshLoader::MeshData data = mesh->modelData->meshData[i];
 		ID3D11ShaderResourceView* texture;
 
 		if (data.texture)
@@ -258,6 +280,22 @@ bool LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATR
 }
 
 
+void LightShader::renderShader(ID3D11DeviceContext* deviceContext, int indexCount) {
+
+	//deviceContext->IASetInputLayout(layout);
+
+	deviceContext->VSSetShader(vertexShader, NULL, 0);
+	deviceContext->PSSetShader(pixelShader, NULL, 0);
+
+	// Set the sampler state in the pixel shader.
+	deviceContext->PSSetSamplers(0, 1, &sampleState);
+
+	deviceContext->DrawIndexed(indexCount, 0, 0);
+}
+
+
+
+
 
 
 bool LightShader::render(ID3D11DeviceContext *deviceContext, int indexCount,
@@ -272,6 +310,8 @@ bool LightShader::render(ID3D11DeviceContext *deviceContext, int indexCount,
 	renderShader(deviceContext, indexCount);
 	return true;
 }
+
+
 
 
 bool LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix,
@@ -324,16 +364,5 @@ bool LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATR
 }
 
 
-void LightShader::renderShader(ID3D11DeviceContext* deviceContext, int indexCount) {
 
-	deviceContext->IASetInputLayout(layout);
-
-	deviceContext->VSSetShader(vertexShader, NULL, 0);
-	deviceContext->PSSetShader(pixelShader, NULL, 0);
-
-	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 1, &sampleState);
-
-	deviceContext->DrawIndexed(indexCount, 0, 0);
-}
 

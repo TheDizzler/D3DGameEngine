@@ -62,9 +62,6 @@
     <ClCompile Include="Source\GraphicsEngine.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Model.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Texture.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
@@ -92,10 +89,16 @@
     <ClCompile Include="Source\shaders\ColorShader.cpp">
       <Filter>Source Files\Graphics\Shaders</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Mesh.cpp">
+    <ClCompile Include="Source\D3DEnginePCH.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\shaders\BaseShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MeshLoader.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Source\D3DEnginePCH.cpp">
+    <ClCompile Include="Source\Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -116,9 +119,6 @@
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Source\GraphicsEngine.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Model.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Source\Texture.h">
@@ -148,10 +148,16 @@
     <ClInclude Include="Source\shaders\ColorShader.h">
       <Filter>Header Files\Graphics\Shaders</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Mesh.h">
+    <ClInclude Include="Source\D3DEnginePCH.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\shaders\BaseShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MeshLoader.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Source\D3DEnginePCH.h">
+    <ClInclude Include="Source\model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -167,16 +173,10 @@
     <None Include="Source\shaders\LightVertexShader.hlsl">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="Source\shaders\PixelShader.hlsl">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="Source\shaders\TexturePixelShader.hlsl">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Source\shaders\TextureVertexShader.hlsl">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Source\shaders\VertexShader.hlsl">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="packages.config" />
@@ -184,6 +184,18 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Source\shaders\DiffuseVertexShader.hlsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Source\shaders\ColorVertexShader.hlsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Source\shaders\ColorPixelShader.hlsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Source\shaders\ImpVertexShader.hlsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Source\shaders\ImpPixelShader.hlsl">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

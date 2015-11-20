@@ -6,10 +6,10 @@
 
 GraphicsEngine::GraphicsEngine() {
 
-	bgColor[0] = 1.0f;
-	bgColor[1] = 1.0f;
-	bgColor[2] = 1.0f;
-	bgColor[3] = 0.0f;
+	clearColor[0] = 1.0f;
+	clearColor[1] = 1.0f;
+	clearColor[2] = 1.0f;
+	clearColor[3] = 0.0f;
 }
 
 
@@ -26,39 +26,53 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 		return false;
 	}
 
+	if (!createConstantBuffer()) {
+		MessageBox(hwnd, L"Direct3D failed to create the constant buffer", L"ERROR", MB_OK);
+		return false;
+	}
+
+	/**** INITIALIZE VIEWPORT  ****/
+	initializeViewPort();
+
+
+	//worldMatrix = XMMatrixIdentity();
+
+	/*orthoMatrix = XMMatrixOrthographicLH((float) Globals::WINDOW_WIDTH, (float) Globals::WINDOW_HEIGHT,
+		Globals::SCREEN_NEAR, Globals::SCREEN_DEPTH);*/
+
+	
+
+
+
+	shaderManager = new ShaderManager();
+	shaderManager->initializeManager(device, hwnd);
+	meshLoader = new MeshLoader();
+	meshLoader->setShader(shaderManager->baseShader);
+
+
+	if (meshLoader->loadMesh(device, "../../D3DEngine/assets/spider/spider.obj") != NO_WORRIES) {
+		//MessageBox(NULL, L"Error trying to load mesh", L"ERROR", MB_OK);
+		return false;
+	}
+
+
+	//if (!mesh->loadMesh(device, "./assets/house/house.obj")) {
+	//if (!mesh->loadMesh(device, "./assets/Aphrodite/aphrodite.obj")) {
+	//if (!mesh->loadMesh(device, "./assets/castle/castle01.obj")) {
+		//MessageBox(NULL, L"Error trying to initialize mesh", L"ERROR", MB_OK);
+		//return false;
+	//}
 
 	camera = new Camera();
 	//camera->setPosition(0.0f, 1.0f, -5.0f);
 	camera->setPosition(0.0f, 15.0f, -165.0f);
-
-	/*model = new Model();
-	if (!model->initialize(device, "./cube.txt", L"./Assets/seafloor.dds")) {
-		MessageBox(NULL, L"Error trying to initialize model", L"ERROR", MB_OK);
-		return false;
-	}*/
-
-	mesh = new Mesh();
-	//if (!mesh->loadMesh(device, "./assets/house/house.obj")) {
-	//if (!mesh->loadMesh(device, "./assets/Aphrodite/aphrodite.obj")) {
-	if (!mesh->loadMesh(device, "../../D3DEngine/assets/spider/spider.obj")) {
-	//if (!mesh->loadMesh(device, "./assets/castle/castle01.obj")) {
-		MessageBox(NULL, L"Error trying to initialize mesh", L"ERROR", MB_OK);
-		return false;
-	}
-	/*modelb = new Model();
-	if (!modelb->initialize(device, "../cube.txt", L"./assets/seafloor.dds")) {
-		MessageBox(NULL, L"Error trying to initialize model", L"ERROR", MB_OK);
-		return false;
-	}*/
-	//modelb->setPosition();
 
 	light = new DiffuseLight();
 	light->setAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
 	light->setDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	light->setDirection(1.0f, 0.0f, 0.0f);
 
-	shaders = new ShaderManager();
-	shaders->initializeManager(device, hwnd);
+	
 
 
 	testText();
@@ -66,6 +80,59 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 
 
 	return true;
+}
+
+
+bool GraphicsEngine::createConstantBuffer() {
+
+	D3D11_BUFFER_DESC constantBufferDesc;
+	ZeroMemory(&constantBufferDesc, sizeof(D3D11_BUFFER_DESC));
+
+	constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	constantBufferDesc.ByteWidth = sizeof(XMMATRIX);
+	constantBufferDesc.CPUAccessFlags = 0;
+	constantBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+
+	if (FAILED(device->CreateBuffer(&constantBufferDesc, NULL, &constantBuffers[ApplicationBuffer]))) {
+		OutputDebugStringA("Failed creating application constant buffer");
+		return false;
+	}
+
+	if (FAILED(device->CreateBuffer(&constantBufferDesc, NULL, &constantBuffers[PerFrameBuffer]))) {
+		OutputDebugStringA("Failed creating frame constant buffer");
+		return false;
+	}
+
+	if (FAILED(device->CreateBuffer(&constantBufferDesc, NULL, &constantBuffers[PerObjectBuffer]))) {
+		OutputDebugStringA("Failed creating object constant buffer");
+		return false;
+	}
+
+	return true;
+}
+
+
+void GraphicsEngine::initializeViewPort() {
+
+	D3D11_VIEWPORT viewport;
+	float screenAspect;
+
+	viewport.Width = (float) Globals::WINDOW_WIDTH;
+	viewport.Height = (float) Globals::WINDOW_HEIGHT;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+	viewport.TopLeftX = 0.0f;
+	viewport.TopLeftY = 0.0f;
+
+	deviceContext->RSSetViewports(1, &viewport);
+
+
+	screenAspect = (float) Globals::WINDOW_WIDTH / (float) Globals::WINDOW_HEIGHT;
+
+	projectionMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), screenAspect,
+		Globals::SCREEN_NEAR, Globals::SCREEN_DEPTH);
+	deviceContext->UpdateSubresource(constantBuffers[ApplicationBuffer], 0, NULL, &projectionMatrix, 0, 0);
+
 }
 
 
@@ -108,6 +175,9 @@ void GraphicsEngine::testText() {
 			break;
 		case 0xc100:
 			feats = L"D3D_FEATURE_LEVEL_12_1";
+			break;
+		default:
+			feats = L"No D3D Feature level detected?!";
 			break;
 
 	}
@@ -170,37 +240,43 @@ void GraphicsEngine::update(double time, int fps) {
 	wstring str(ws.str());
 	textFactory->editText(timer, str);
 
+	XMVECTOR eyePosition = XMVectorSet(0, 0, -10, 1);
+	XMVECTOR focusPoint = XMVectorSet(0, 0, 0, 1);
+	XMVECTOR upDirection = XMVectorSet(0, 1, 0, 0);
+	viewMatrix = XMMatrixLookAtLH(eyePosition, focusPoint, upDirection);
+	deviceContext->UpdateSubresource(constantBuffers[PerFrameBuffer], 0, nullptr, &viewMatrix, 0, 0);
 
 
+	static float angle = 0.0f;
+	angle += 90.0f * time;
+	XMVECTOR rotationAxis = XMVectorSet(0, 1, 1, 0);
 
-	rotation += (float) XM_PI * 0.005f;
-	if (rotation > 360.0f) {
-		rotation -= 360.0f;
-	}
+	worldMatrix = XMMatrixRotationAxis(rotationAxis, XMConvertToRadians(angle));
+	deviceContext->UpdateSubresource(constantBuffers[PerObjectBuffer], 0, nullptr, &worldMatrix, 0, 0);
 
-	worldMatrix = XMMatrixRotationY(rotation);
 
+	camera->setViewMatrix(viewMatrix);
 }
 
 
 void GraphicsEngine::render() {
 
-	XMMATRIX viewMatrix;
 
-	deviceContext->ClearRenderTargetView(renderTargetView, bgColor);
-	deviceContext->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	deviceContext->ClearRenderTargetView(renderTargetView, clearColor);
+	deviceContext->ClearDepthStencilView(depthStencilView,
+		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, clearDepth, clearStencil);
 
 	textFactory->draw();
 
 	camera->render();
-	camera->getViewMatrix(viewMatrix);
+	
 
 
-	mesh->render(deviceContext);
-	if (!shaders->lightShader->render(deviceContext, mesh, worldMatrix, viewMatrix, projectionMatrix, light)) {
+	
+	if (!shaders->lightShader->render(deviceContext, meshLoader, worldMatrix, camera->getViewMatrix() , projectionMatrix, light)) {
 		MessageBox(NULL, L"Light Shader malfunction.", L"ERROR", MB_OK);
 	}
-
+	meshLoader->render(deviceContext);
 	//mesh->renderStatic(deviceContext);
 	/*if (!lightShader->render(deviceContext, mesh->getIndexCount(), worldMatrix, viewMatrix,
 			projectionMatrix, NULL, light->direction, light->diffuseColor))
@@ -215,19 +291,23 @@ void GraphicsEngine::shutdown() {
 
 	if (light)
 		delete light;
-	if (shaders)
+
+	if (shaders) {
 		shaders->release();
+		delete shaders;
+	}
 
 
 
-	if (mesh)
-		delete mesh;
+	if (meshLoader)
+		delete meshLoader;
 	if (camera)
 		delete camera;
 
-	if (textFactory)
+	if (textFactory) {
 		textFactory->release();
-
+		delete textFactory;
+	}
 
 	shutdownD3D();
 

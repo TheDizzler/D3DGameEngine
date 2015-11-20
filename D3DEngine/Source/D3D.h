@@ -36,12 +36,6 @@ protected:
 	ID3D11RasterizerState* rasterState = 0;
 	ID3D11DepthStencilView* depthStencilView = 0;
 
-	D3D11_VIEWPORT viewport = {0};
-
-	/* Used to transform objects vertices from view space to clip space. */
-	XMMATRIX projectionMatrix;
-	XMMATRIX worldMatrix;
-	XMMATRIX orthoMatrix;
 
 	D3D_FEATURE_LEVEL featureLevel;
 	vector<IDXGIAdapter*> adapters;
@@ -55,10 +49,17 @@ protected:
 	D3D11_INPUT_ELEMENT_DESC layout[4];
 	UINT numLayoutElements;
 
+	bool initializeSwapChain(HWND hwnd);
 	bool initializeDepthStencil();
 	bool initializeRasterizer();
+
+
 	bool getDisplayAdapters(UINT* numerator, UINT* denominator);
 	void getVideoCardInfo(char* cardName, int& memory);
+
+	void getLatestShaderVersions();
+	string getLatestVSVersion();
+	string getLatestPSVersion();
 
 	void shutdownD3D();
 };

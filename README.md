@@ -12,3 +12,8 @@ Created in Visual Studio 2015 on Windows 10.
 Note: Backwards compatibility was not taken into consideration when creating this!
 I seriously doubt this will work if you are not running DirectX 11 with a compatible gfx card.
 Also, Windows 10 is recommended (Windows 8.1 should be ok??)
+
+I would also like to note that this project was also a way for me to practice C++.
+You will notice that I neglect to use many C++ standards, prefering to use C-style conventions.
+This is because I realized learning D3D is a huge undertaking as it is and I don't want to stress about being "correct" according to C++ conventions.
+In addition, in the process of building this project, I came to realize that I strongly dis-like C++, and I will probably switch to standard C when I get it to a workable state.

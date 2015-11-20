@@ -11,6 +11,36 @@ D3D::~D3D() {
 bool D3D::initD3D(HINSTANCE hInstance, HWND hwnd) {
 
 
+
+	/*** INITIALIZE SWAP CHAIN ***/
+	if (!initializeSwapChain(hwnd)) {
+		MessageBox(hwnd, L"Error initializing Swap Chain", L"ERROR", MB_OK);
+		return false;
+	}
+
+
+	/*** INITIALIZE DEPTH STENCIL ***/
+	if (!initializeDepthStencil()) {
+		MessageBox(hwnd, L"Error initializing Depth Stencil.", L"ERROR", MB_OK);
+		return false;
+	}
+
+
+	/**** INITIALIZE RASTERIZER  ****/
+	if (!initializeRasterizer()) {
+		MessageBox(hwnd, L"Error initializing Rasterizer State.", L"ERROR", MB_OK);
+		return false;
+	}
+
+
+
+
+	return true;
+}
+
+
+bool D3D::initializeSwapChain(HWND hwnd) {
+
 	unsigned int numerator, denominator;
 
 	if (!getDisplayAdapters(&numerator, &denominator)) {
@@ -26,8 +56,7 @@ bool D3D::initD3D(HINSTANCE hInstance, HWND hwnd) {
 	swapChainDesc.BufferDesc.Height = Globals::WINDOW_HEIGHT;
 	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	// Set the refresh rate of the back buffer.
-	//swapChainDesc.BufferDesc.RefreshRate = QueryRefreshRate(Globals::WINDOW_WIDTH, Globals::WINDOW_HEIGHT, Globals::vsync_enabled);
-	if (Globals::vsync_enabled) {
+	if (Globals::vsync_enabled == 1) {
 		swapChainDesc.BufferDesc.RefreshRate.Numerator = numerator;
 		swapChainDesc.BufferDesc.RefreshRate.Denominator = denominator;
 	} else {
@@ -63,8 +92,8 @@ bool D3D::initD3D(HINSTANCE hInstance, HWND hwnd) {
 		D3D_FEATURE_LEVEL_9_1
 	};
 
-	
-	
+
+
 
 	if (FAILED(D3D11CreateDeviceAndSwapChain(adapters[1], D3D_DRIVER_TYPE_UNKNOWN, NULL,
 		createDeviceFlags, featureLevels, _countof(featureLevels), D3D11_SDK_VERSION,
@@ -85,46 +114,7 @@ bool D3D::initD3D(HINSTANCE hInstance, HWND hwnd) {
 	}
 	safeRelease(backBufferPtr);
 
-
-	/*** INITIALIZE DEPTH STENCIL ***/
-	if (!initializeDepthStencil()) {
-		MessageBox(hwnd, L"Could not create Depth Stencil.", L"ERROR", MB_OK);
-		return false;
-	}
-
-
-	/**** INITIALIZE RASTERIZER  ****/
-	if (!initializeRasterizer()) {
-		MessageBox(hwnd, L"Could not create rasterizer state.", L"ERROR", MB_OK);
-		return false;
-	}
-
-
-	/**** INITIALIZE VIEWPORT  ****/
-	D3D11_VIEWPORT viewport;
-	float fieldOfView, screenAspect;
-
-	viewport.Width = (float) Globals::WINDOW_WIDTH;
-	viewport.Height = (float) Globals::WINDOW_HEIGHT;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-	viewport.TopLeftX = 0.0f;
-	viewport.TopLeftY = 0.0f;
-
-	deviceContext->RSSetViewports(1, &viewport);
-
-
-	fieldOfView = 3.141592654f / 4.0f;
-	screenAspect = (float) Globals::WINDOW_WIDTH / (float) Globals::WINDOW_HEIGHT;
-
-	projectionMatrix = XMMatrixPerspectiveFovLH(fieldOfView, screenAspect,
-		Globals::SCREEN_NEAR, Globals::SCREEN_DEPTH);
-	worldMatrix = XMMatrixIdentity();
-
-	orthoMatrix = XMMatrixOrthographicLH((float) Globals::WINDOW_WIDTH, (float) Globals::WINDOW_HEIGHT,
-		Globals::SCREEN_NEAR, Globals::SCREEN_DEPTH);
-
-	return true;
+	getLatestShaderVersions();
 }
 
 
@@ -139,8 +129,8 @@ bool D3D::initializeDepthStencil() {
 	depthBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	depthBufferDesc.Width = Globals::WINDOW_WIDTH;
 	depthBufferDesc.Height = Globals::WINDOW_HEIGHT;
-	depthBufferDesc.MipLevels = 0; // 1 for a multisampled texture; 0 to generate a full set of subtextures.
-	depthBufferDesc.SampleDesc.Count = 1;
+	depthBufferDesc.MipLevels = 1; // 1 for a multisampled texture; 0 to generate a full set of subtextures.
+	depthBufferDesc.SampleDesc.Count = 1; // SampleDesc must match SwapChain SampleDesc
 	depthBufferDesc.SampleDesc.Quality = 0;
 	depthBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	depthBufferDesc.MiscFlags = 0;
@@ -151,10 +141,27 @@ bool D3D::initializeDepthStencil() {
 		return false;
 	}
 
+	// use the depth buffer as a depth-stencil texture.
+	/*D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+	ZeroMemory(&depthStencilViewDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+	depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	depthStencilViewDesc.Texture2D.MipSlice = 0;
+
+	if (FAILED(device->CreateDepthStencilView(depthStencilBuffer, &depthStencilViewDesc, &depthStencilView))) {
+		MessageBox(NULL, L"Could not create depth-stencil view.", L"ERROR", MB_OK);
+		return false;
+	}*/
+
+	if (FAILED(device->CreateDepthStencilView(depthStencilBuffer, NULL, &depthStencilView))) {
+		MessageBox(NULL, L"Could not create depth-stencil view.", L"ERROR", MB_OK);
+		return false;
+	}
+
 	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
-	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
+	ZeroMemory(&depthStencilDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
 	depthStencilDesc.DepthEnable = true;
-	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL; // D3D11_DEPTH_WRITE_MASK_ZERO for transparents
 	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
 	depthStencilDesc.StencilEnable = true;
 	depthStencilDesc.StencilReadMask = 0xFF;
@@ -180,20 +187,12 @@ bool D3D::initializeDepthStencil() {
 
 	deviceContext->OMSetDepthStencilState(depthStencilState, 1);
 
-	// use the depth buffer as a depth-stencil texture.
-	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
-	ZeroMemory(&depthStencilViewDesc, sizeof(depthStencilViewDesc));
-	depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-	depthStencilViewDesc.Texture2D.MipSlice = 0;
 
-	if (FAILED(device->CreateDepthStencilView(depthStencilBuffer, &depthStencilViewDesc, &depthStencilView))) {
-		MessageBox(NULL, L"Could not create depth-stencil view.", L"ERROR", MB_OK);
-		return false;
-	}
 
 	// Bind the render target view and depth stencil buffer to the output render pipeline.
 	deviceContext->OMSetRenderTargets(1, &renderTargetView, depthStencilView);
+
+	return true;
 }
 
 
@@ -207,20 +206,18 @@ bool D3D::initializeRasterizer() {
 	rasterDesc.AntialiasedLineEnable = false;
 	rasterDesc.DepthBias = 0;
 	rasterDesc.DepthBiasClamp = 0.0f;
+	rasterDesc.SlopeScaledDepthBias = 0.0f;
 	rasterDesc.DepthClipEnable = true;
-	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.FillMode = D3D11_FILL_SOLID; //rasterDesc.FillMode = D3D11_FILL_WIREFRAME;
 	rasterDesc.CullMode = D3D11_CULL_BACK;
-	rasterDesc.FrontCounterClockwise = true;	// false = furthest surface gets drawn
+	rasterDesc.FrontCounterClockwise = false;	// if model is left-handed:
+												// false = furthest surface gets drawn
 												// when CullMode = D3D11_CULL_BACK and
 												// opposite if CullMode = D3D11_CULL_FRONT
-	rasterDesc.MultisampleEnable = false;
+	rasterDesc.MultisampleEnable = false; // TRUE to use the quadrilateral line anti-aliasing algorithm and to FALSE to use the alpha line anti-aliasing algorithm.
+	rasterDesc.AntialiasedLineEnable = false; // only applies if doing line drawing and MultisampleEnable is FALSE.
 	rasterDesc.ScissorEnable = false;
-	rasterDesc.SlopeScaledDepthBias = 0.0f;
 
-
-	/* Wire Frame Rasterizer */
-	//rasterDesc.FillMode = D3D11_FILL_WIREFRAME;
-	//rasterDesc.CullMode = D3D11_CULL_BACK;
 
 
 	if (FAILED(device->CreateRasterizerState(&rasterDesc, &rasterState)))
@@ -232,6 +229,10 @@ bool D3D::initializeRasterizer() {
 
 
 }
+
+
+
+
 
 bool D3D::getDisplayAdapters(UINT* numerator, UINT* denominator) {
 
@@ -266,10 +267,6 @@ bool D3D::getDisplayAdapters(UINT* numerator, UINT* denominator) {
 
 	adapter = adapters[1];
 	adapterOutput = adapterOutputs[0];
-	/*if (FAILED(adapter->EnumOutputs(0, &adapterOutput))) {
-		MessageBox(NULL, L"Error enumerating outputs.", L"ERROR", MB_OK);
-		return false;
-	}*/
 
 
 	// Find total modes that fit the DXGI_FORMAT_R8G8B8A8_UNORM display format
@@ -311,9 +308,6 @@ bool D3D::getDisplayAdapters(UINT* numerator, UINT* denominator) {
 		return false;
 	}
 
-	//delete[] displayModeList;
-	//adapterOutput->Release();
-	//adapter->Release();
 	factory->Release();
 
 	return true;
@@ -325,16 +319,97 @@ void D3D::getVideoCardInfo(char* cardName, int& memory) {
 	memory = videoCardMemory;
 }
 
+
+void D3D::getLatestShaderVersions() {
+
+	switch (featureLevel) {
+		case D3D_FEATURE_LEVEL_11_1:
+		case D3D_FEATURE_LEVEL_11_0:
+			Globals::VERTEX_SHADER_VERSION = "vs_5_0";
+			Globals::PIXEL_SHADER_VERSION = "ps_5_0";
+			break;
+		case D3D_FEATURE_LEVEL_10_1:
+			Globals::VERTEX_SHADER_VERSION = "vs_4_1";
+			Globals::PIXEL_SHADER_VERSION = "ps_4_1";
+			break;
+		case D3D_FEATURE_LEVEL_10_0:
+			Globals::VERTEX_SHADER_VERSION = "vs_4_0";
+			Globals::PIXEL_SHADER_VERSION = "ps_4_0";
+			break;
+		case D3D_FEATURE_LEVEL_9_3:
+			Globals::VERTEX_SHADER_VERSION = "vs_4_0_level_9_3";
+			Globals::PIXEL_SHADER_VERSION = "ps_4_0_level_9_3";
+			break;
+		case D3D_FEATURE_LEVEL_9_2:
+		case D3D_FEATURE_LEVEL_9_1:
+			Globals::VERTEX_SHADER_VERSION = "vs_4_0_level_9_1";
+			Globals::PIXEL_SHADER_VERSION = "ps_4_0_level_9_1";
+			break;
+		default:
+			// well, we're fucked anyway, AMIRITE??
+			break;
+
+	}
+}
+
+string D3D::getLatestVSVersion() {
+
+	//D3D_FEATURE_LEVEL feats = device->GetFeatureLevel();
+
+	switch (featureLevel) {
+		case D3D_FEATURE_LEVEL_11_1:
+		case D3D_FEATURE_LEVEL_11_0:
+			return "vs_5_0";
+		case D3D_FEATURE_LEVEL_10_1:
+			return "vs_4_1";
+		case D3D_FEATURE_LEVEL_10_0:
+			return "vs_4_0";
+		case D3D_FEATURE_LEVEL_9_3:
+			return "vs_4_0_level_9_3";
+		case D3D_FEATURE_LEVEL_9_2:
+		case D3D_FEATURE_LEVEL_9_1:
+			return "vs_4_0_level_9_1";
+	}
+
+	return "Oh shit...";
+}
+
+string D3D::getLatestPSVersion() {
+
+	//D3D_FEATURE_LEVEL feats = device->GetFeatureLevel();
+
+	switch (featureLevel) {
+		case D3D_FEATURE_LEVEL_11_1:
+		case D3D_FEATURE_LEVEL_11_0:
+			return "ps_5_0";
+		case D3D_FEATURE_LEVEL_10_1:
+			return "ps_4_1";
+		case D3D_FEATURE_LEVEL_10_0:
+			return "ps_4_0";
+		case D3D_FEATURE_LEVEL_9_3:
+			return "ps_4_0_level_9_3";
+		case D3D_FEATURE_LEVEL_9_2:
+		case D3D_FEATURE_LEVEL_9_1:
+			return "ps_4_0_level_9_1";
+	}
+
+	return "Oh shit...";
+}
+
 void D3D::shutdownD3D() {
 
 	for (IDXGIAdapter* adapter : adapters)
 		adapter->Release();
 
+
 	for (IDXGIOutput* output : adapterOutputs)
 		output->Release();
 
+	delete[] displayModeList;
+
 	if (swapChain) {
 		swapChain->SetFullscreenState(false, NULL); // force windowed mode to prevent exception.
+		swapChain->Release();
 	}
 
 	if (rasterState) {
@@ -363,9 +438,5 @@ void D3D::shutdownD3D() {
 
 	if (device) {
 		device->Release();
-	}
-
-	if (swapChain) {
-		swapChain->Release();
 	}
 }

@@ -16,7 +16,7 @@ bool ShaderManager::initializeManager(ID3D11Device * device, HWND hwnd) {
 	}
 
 
-	textureShader = new TextureShader();
+	/*textureShader = new TextureShader();
 	if (!textureShader->initialize(device, hwnd, TEXTURE_VERTEX_SHADER, TEXTURE_PIXEL_SHADER)) {
 		MessageBox(hwnd, L"Could not initialize the Texture Shader object.", L"Error", MB_OK);
 		return false;
@@ -27,7 +27,7 @@ bool ShaderManager::initializeManager(ID3D11Device * device, HWND hwnd) {
 	if (!colorShader->initialize(device, hwnd, COLOR_VERTEX_SHADER, COLOR_PIXEL_SHADER)) {
 		MessageBox(hwnd, L"Error initializing Color Shader", L"ERROR", MB_OK);
 		return false;
-	}
+	}*/
 
 	
 

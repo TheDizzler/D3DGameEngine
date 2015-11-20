@@ -21,26 +21,29 @@ public:
 
 	virtual void release();
 
-	bool render(ID3D11DeviceContext *deviceContext, Mesh* mesh, XMMATRIX worldMatrix,
+	bool render(ID3D11DeviceContext *deviceContext, MeshLoader* mesh, XMMATRIX worldMatrix,
 		XMMATRIX viewMatrix, XMMATRIX projectionMatrix, DiffuseLight* light);
 
 	bool render(ID3D11DeviceContext *deviceContext, int indexCount,
 		XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix,
 		ID3D11ShaderResourceView* texture, XMFLOAT3 lightDirection, XMFLOAT4 diffuseColor);
 
+	virtual ID3D11InputLayout* getLayout();
+
 protected:
 
 	virtual bool initializeShader(ID3D11Device* device, HWND hwnd,
 		const WCHAR* vsFilename, const WCHAR* psFilename);
+	
 	virtual void renderShader(ID3D11DeviceContext* deviceContext, int indexCount);
 
-	
+	virtual HRESULT initInputLayout(ID3D11Device* device, ID3D10Blob* vertexShaderBlob);
 	virtual HRESULT initMatrixBuffer(ID3D11Device* device);
 	virtual HRESULT initSamplerState(ID3D11Device* device);
 	virtual HRESULT initLightBuffer(ID3D11Device* device);
 
 	bool setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix,
-		XMMATRIX viewMatrix, XMMATRIX projectionMatrix, Mesh* mesh,
+		XMMATRIX viewMatrix, XMMATRIX projectionMatrix, MeshLoader* mesh,
 		XMFLOAT3 lightDirection, XMFLOAT4 diffuseColor, XMFLOAT4 ambientColor);
 
 
