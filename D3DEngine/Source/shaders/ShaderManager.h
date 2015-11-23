@@ -4,7 +4,6 @@
 #include "LightShader.h"
 #include "TextureShader.h"
 #include "ColorShader.h"
-#include "BaseShader.h"
 #include "MeshLoader.h"
 
 
@@ -17,6 +16,9 @@ public:
 	~ShaderManager();
 
 	bool initializeManager(ID3D11Device* device, HWND hwnd);
+
+	void render(ID3D11DeviceContext* deviceContext, ID3D11Buffer* constantBuffers[]);
+
 	void release();
 
 
@@ -29,18 +31,10 @@ public:
 	LightShader* lightShader = 0;
 	TextureShader* textureShader = 0;
 
-	/*bool renderColorShader(ID3D11DeviceContext *deviceContext, int indexCount,
-		XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix);
-
-	bool renderTextureShader(ID3D11DeviceContext *deviceContext, int indexCount,
-		XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix,
-		ID3D11ShaderResourceView* texture);
-
-	bool renderLightShader(ID3D11DeviceContext *deviceContext, Mesh* mesh,
-		XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix,
-		DiffuseLight* light);*/
-
 private:
+
+	vector<BaseShader*> shaders;
+
 
 	const WCHAR* COLOR_VERTEX_SHADER = L"../../D3DEngine/source/shaders/ColorVertexShader.hlsl";
 	const WCHAR* COLOR_PIXEL_SHADER = L"../../D3DEngine/source/shaders/ColorPixelShader.hlsl";

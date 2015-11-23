@@ -9,23 +9,29 @@ BaseShader::~BaseShader() {
 
 void BaseShader::loadModel(Model* model) {
 
-	models.push_back(*model); // making an attempt at keeping models in contiguous memory. Pointless?
+	models.push_back(model); // making an attempt at keeping models in contiguous memory. Pointless?
+	stringstream msg;
+	msg << "after push back " << model->filepath;
+	ErrorMessage(msg.str());
+	
 }
 
 
-void BaseShader::render(ID3D11DeviceContext* deviceContext) {
+void BaseShader::render(ID3D11DeviceContext* deviceContext, ID3D11Buffer* constantBuffers[]) {
 
 	// set device context
 	deviceContext->VSSetShader(vertexShader, NULL, 0);
 	deviceContext->PSSetShader(pixelShader, NULL, 0);
 
 
-	deviceContext->IASetInputLayout(layout); // let is one per shader??
+	deviceContext->IASetInputLayout(layout); // layout is one per shader??
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // this won't change??
 
+
 	// for each model that uses this shader
-	for (Model model : models) {
-		model.render(deviceContext);
+	for (Model* model : models) {
+		deviceContext->PSSetSamplers(0, 1, &sampleState); // is this per texture?
+		model->render(deviceContext, constantBuffers);
 	}
 }
 
@@ -44,25 +50,25 @@ bool BaseShader::initializeShader(ID3D11Device* device, HWND hwnd,
 #endif
 
 	// Compile the vertex shader code.
-	if (FAILED(D3DCompileFromFile(&shaderDesc->vsFilename, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
-		shaderDesc->vsEntryPoint, Globals::VERTEX_SHADER_VERSION,
+	if (FAILED(D3DCompileFromFile(shaderDesc->vsFile, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		shaderDesc->vsEP, Globals::VERTEX_SHADER_VERSION,
 		flags, 0, &vertexShaderBlob, &errorBlob))) {
 		if (errorBlob) {
-			outputShaderErrorMessage(errorBlob, hwnd, &shaderDesc->vsFilename);
+			outputShaderErrorMessage(errorBlob, hwnd, shaderDesc->vsFile);
 		} else {
-			MessageBox(hwnd, &shaderDesc->vsFilename, L"Missing Vertex Shader File", MB_OK);
+			MessageBox(hwnd, shaderDesc->vsFile, L"Missing Vertex Shader File", MB_OK);
 		}
 
 		return false;
 	}
 
-	if (FAILED(D3DCompileFromFile(&shaderDesc->psFilename, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
-		shaderDesc->psEntryPoint, Globals::PIXEL_SHADER_VERSION,
+	if (FAILED(D3DCompileFromFile(shaderDesc->psFile, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		shaderDesc->psEP, Globals::PIXEL_SHADER_VERSION,
 		flags, 0, &pixelShaderBlob, &errorBlob))) {
 		if (errorBlob) {
-			outputShaderErrorMessage(errorBlob, hwnd, &shaderDesc->psFilename);
+			outputShaderErrorMessage(errorBlob, hwnd, shaderDesc->psFile);
 		} else {
-			MessageBox(hwnd, &shaderDesc->psFilename, L"Missing Pixel Shader File", MB_OK);
+			MessageBox(hwnd, shaderDesc->psFile, L"Missing Pixel Shader File", MB_OK);
 		}
 
 		return false;
@@ -108,9 +114,6 @@ bool BaseShader::initializeShader(ID3D11Device* device, HWND hwnd,
 
 	return true;
 }
-
-
-
 
 
 
@@ -260,7 +263,7 @@ void BaseShader::release() {
 	if (lightBuffer)
 		lightBuffer->Release();
 
-	for (Model model : models) {
+	for each (Model* model in models) {
 		delete model;
 	}
 }

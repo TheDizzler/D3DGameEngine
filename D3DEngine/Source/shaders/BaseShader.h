@@ -1,8 +1,23 @@
 #pragma once
 
-#include "MeshLoader.h"
-#include "Globals.h"
 
+#include "Globals.h"
+#include "Model3D.h"
+
+//using namespace std;
+
+/* Description of shader to create. My attempt at a Microsoft code style :P. */
+typedef struct ShaderDesc {
+	ShaderDesc(const WCHAR* vsFilename, LPCSTR vsEntryPoint,
+		const WCHAR* psFilename, LPCSTR psEntryPoint) :
+		vsFile(vsFilename), vsEP(vsEntryPoint), psFile(psFilename), psEP(psEntryPoint) {
+
+	}
+	const WCHAR* vsFile;
+	LPCSTR vsEP;
+	const WCHAR* psFile;
+	LPCSTR psEP;
+};
 
 /* These shaders will render per model (ie loads one model and renders all materials on that model).
 	Later I might implement per material shader (loads materials and then renders each mesh that uses
@@ -10,13 +25,6 @@
 class BaseShader {
 public:
 
-	/* Description of shader to create. My attempt at a Microsoft style coding :P. */
-	struct ShaderDesc {
-		const WCHAR vsFilename;
-		const LPCSTR vsEntryPoint;
-		const WCHAR psFilename;
-		const LPCSTR psEntryPoint;
-	};
 
 	BaseShader();
 	~BaseShader();
@@ -26,13 +34,15 @@ public:
 
 	void loadModel(Model* model);
 
-	void render(ID3D11DeviceContext* deviceCon);
+	void render(ID3D11DeviceContext* deviceContext, ID3D11Buffer* constantBuffers[]);
 
 	void release();
 
+	vector<Model*> models;
+
 private:
 
-	vector<Model> models;
+
 
 	ID3D11VertexShader* vertexShader = 0;
 	ID3D11PixelShader* pixelShader = 0;

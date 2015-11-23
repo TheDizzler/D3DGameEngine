@@ -212,7 +212,7 @@ TextLabel* TextFactory::createText(WCHAR* text, float xPos, float yPos, float fo
 void TextFactory::editText(TextLabel* label, wstring str) {
 
 	if (!label) {
-		Utils::QuickMessage(L"Null label sent to edit text");
+		QuickMessage(L"Null label sent to edit text");
 		return;
 	}
 

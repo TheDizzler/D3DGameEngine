@@ -210,7 +210,7 @@ bool LightShader::render(ID3D11DeviceContext *deviceContext, MeshLoader* mesh, X
 		return false;
 	}
 
-	renderShader(deviceContext, mesh->getIndexCount());
+	//renderShader(deviceContext, mesh->getIndexCount());
 	return true;
 }
 
@@ -233,49 +233,49 @@ bool LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, XMMATR
 	projectionMatrix = XMMatrixTranspose(projectionMatrix);
 
 
-	for (int i = 0; i < mesh->modelData->numMeshes; ++i) {
-		if (FAILED(deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource))) {
-			return false;
-		}
+	//for (int i = 0; i < mesh->modelData->numMeshes; ++i) {
+	//	if (FAILED(deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource))) {
+	//		return false;
+	//	}
 
-		dataPtr = (ConstantMatrix*) mappedResource.pData;
+	//	dataPtr = (ConstantMatrix*) mappedResource.pData;
 
-		dataPtr->world = worldMatrix;
-		dataPtr->view = viewMatrix;
-		dataPtr->projection = projectionMatrix;
+	//	dataPtr->world = worldMatrix;
+	//	dataPtr->view = viewMatrix;
+	//	dataPtr->projection = projectionMatrix;
 
-		deviceContext->Unmap(matrixBuffer, 0);
-		bufferNumber = 0;
+	//	deviceContext->Unmap(matrixBuffer, 0);
+	//	bufferNumber = 0;
 
 
-		MeshLoader::MeshData data = mesh->modelData->meshData[i];
-		ID3D11ShaderResourceView* texture;
+	//	MeshLoader::MeshData data = mesh->modelData->meshData[i];
+	//	ID3D11ShaderResourceView* texture;
 
-		if (data.texture)
-			texture = data.texture->getTexture();
-		else
-			texture = NULL;
-		deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer);
-		deviceContext->PSSetShaderResources(0, 1, &texture);
+	//	if (data.texture)
+	//		texture = data.texture->getTexture();
+	//	else
+	//		texture = NULL;
+	//	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer);
+	//	deviceContext->PSSetShaderResources(0, 1, &texture);
 
-		/***** Light Constant Buffer *****/
-		DiffuseLightBuffer* dataPtr2;
-		// Must lock light constant buffer so can write to it
-		if (FAILED(deviceContext->Map(lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource))) {
-			return false;
-		}
+	//	/***** Light Constant Buffer *****/
+	//	DiffuseLightBuffer* dataPtr2;
+	//	// Must lock light constant buffer so can write to it
+	//	if (FAILED(deviceContext->Map(lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource))) {
+	//		return false;
+	//	}
 
-		dataPtr2 = (DiffuseLightBuffer*) mappedResource.pData;
-		dataPtr2->ambientColor = ambientColor;
-		dataPtr2->diffuseColor = diffuseColor;
-		dataPtr2->lightDirection = lightDirection;
-		dataPtr2->padding = 0.0f;
+	//	dataPtr2 = (DiffuseLightBuffer*) mappedResource.pData;
+	//	dataPtr2->ambientColor = ambientColor;
+	//	dataPtr2->diffuseColor = diffuseColor;
+	//	dataPtr2->lightDirection = lightDirection;
+	//	dataPtr2->padding = 0.0f;
 
-		deviceContext->Unmap(lightBuffer, 0);	// Unlock the constant buffer.
-		bufferNumber = 0;
-		deviceContext->PSSetConstantBuffers(bufferNumber, 1, &lightBuffer);
-		//renderShader(deviceContext, data.numIndices);
-	}
+	//	deviceContext->Unmap(lightBuffer, 0);	// Unlock the constant buffer.
+	//	bufferNumber = 0;
+	//	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &lightBuffer);
+	//	//renderShader(deviceContext, data.numIndices);
+	//}
 	return true;
 }
 

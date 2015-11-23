@@ -19,13 +19,13 @@ public:
 
 	void render();
 	void setViewMatrix(XMMATRIX&);
+	void setLookAt(float lookAtX, float lookAtY, float lookAtZ);
+
 	XMMATRIX getViewMatrix();
+
 private:
 
-
-	float positionX, positionY, positionZ;
-	float rotationX, rotationY, rotationZ;
 	XMMATRIX viewMatrix;
-	
+	XMFLOAT3 up, position, lookAt, rotation;
 
 };

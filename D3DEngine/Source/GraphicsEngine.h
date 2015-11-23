@@ -2,10 +2,10 @@
 
 
 #include "D3D.h"
+#include "ShaderManager.h"
 #include "TextFactory.h"
 #include "Camera.h"
 //#include "Model.h"
-#include "ShaderManager.h"
 
 
 /** Container for all graphical properties. For now it is the whole engine, including gameplay
@@ -13,13 +13,6 @@
 class GraphicsEngine : public D3D {
 public:
 
-	/* Constant Buffers store shader variables that remain constant during a draw call. */
-	enum ConstantBuffer {
-		ApplicationBuffer,	// variables that rarely change, ex: camera projection matrix
-		PerFrameBuffer,		// variables that change each frame ex: camera view matrix
-		PerObjectBuffer,	// variables that are different for every object rendered
-		NumConstantBuffers
-	};
 
 	ID3D11Buffer* constantBuffers[NumConstantBuffers];
 
@@ -44,7 +37,8 @@ private:
 
 	Camera* camera = 0;
 	DiffuseLight* light = 0;
-	//Model* model = 0;
+	Model* model = 0;
+
 	MeshLoader* meshLoader = 0;
 
 	ShaderManager* shaderManager = 0;

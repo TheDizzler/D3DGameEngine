@@ -7,7 +7,7 @@ MeshLoader::MeshLoader() {
 
 MeshLoader::~MeshLoader() {
 
-	release();
+
 }
 
 void MeshLoader::setShader(BaseShader* shdr) {
@@ -70,8 +70,6 @@ TRESULTS MeshLoader::loadMesh(ID3D11Device* device, const string filename) {
 
 	shader->loadModel(model);
 
-	delete model;
-
 	return NO_WORRIES;
 }
 
@@ -107,7 +105,7 @@ bool MeshLoader::initFromScene(ID3D11Device* device, const aiScene* scene, Model
 			else
 				str << " \n Problem: The mesh containes points when it should only contain triangles";
 
-			Utils::ErrorMessage(str);
+			ErrorMessage(str.str());
 
 			continue;
 		}
@@ -116,7 +114,7 @@ bool MeshLoader::initFromScene(ID3D11Device* device, const aiScene* scene, Model
 			stringstream str;
 			str << "There are errors with this submesh, named: " << mesh->mName.data;
 			str << " \n Problem: The mesh containes no texcoords, which means there will just be color displayed. This engine does not support color mesh displays, only textured mesh!";
-			Utils::ErrorMessage(str);
+			ErrorMessage(str.str());
 			continue;
 		}
 
@@ -124,7 +122,7 @@ bool MeshLoader::initFromScene(ID3D11Device* device, const aiScene* scene, Model
 			stringstream str;
 			str << "There are errors with this submesh, named: " << mesh->mName.data;
 			str << " \n Problem: Tangents were not created. No known fix";
-			Utils::ErrorMessage(str);
+			ErrorMessage(str.str());
 			continue;
 		}
 
@@ -175,12 +173,14 @@ bool MeshLoader::initFromScene(ID3D11Device* device, const aiScene* scene, Model
 
 			Texture diffuse = Texture();
 			if (diffuse.initialize(device, texturepath)) {
-
+				data.hasTexture = true;
 				data.texture = diffuse;
-			}
+			} else
+				data.hasTexture = false;
 
 		} else {
 
+			data.hasTexture = false;
 			//MessageBox(NULL, L"No diffuse texture found", L"WARNING", MB_OK);
 
 			/*stringstream str;

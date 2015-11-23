@@ -17,7 +17,7 @@ bool Texture::initialize(ID3D11Device* device, const wchar_t* filename) {
 	if (FAILED(CreateWICTextureFromFile(device, filename, &texture, &textureView))) {
 		stringstream str;
 		str << "Failed CreateShaderResourceViewFromFile, file name: " << filename;
-		Utils::ErrorMessage(str);
+		ErrorMessage(str.str());
 		//MessageBox(NULL, L"Failed CreateShaderResourceViewFromFile", L"ERROR", MB_OK);
 		return false;
 	}

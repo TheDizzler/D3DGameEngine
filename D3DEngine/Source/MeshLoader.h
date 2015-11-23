@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Model.h"
 #include "BaseShader.h"
 
 #include <assimp/Importer.hpp>
@@ -9,7 +8,7 @@
 
 
 
-using namespace DirectX;
+//using namespace DirectX;
 
 class MeshLoader {
 
@@ -43,5 +42,5 @@ private:
 
 
 
-	void release();
+	//void release();
 };

@@ -8,7 +8,7 @@ GraphicsEngine::GraphicsEngine() {
 
 	clearColor[0] = 1.0f;
 	clearColor[1] = 1.0f;
-	clearColor[2] = 1.0f;
+	clearColor[2] = 0.0f;
 	clearColor[3] = 0.0f;
 }
 
@@ -31,16 +31,6 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 		return false;
 	}
 
-	/**** INITIALIZE VIEWPORT  ****/
-	initializeViewPort();
-
-
-	//worldMatrix = XMMatrixIdentity();
-
-	/*orthoMatrix = XMMatrixOrthographicLH((float) Globals::WINDOW_WIDTH, (float) Globals::WINDOW_HEIGHT,
-		Globals::SCREEN_NEAR, Globals::SCREEN_DEPTH);*/
-
-	
 
 
 
@@ -56,12 +46,25 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 	}
 
 
+	model = shaderManager->baseShader->models[0];
+	
 	//if (!mesh->loadMesh(device, "./assets/house/house.obj")) {
 	//if (!mesh->loadMesh(device, "./assets/Aphrodite/aphrodite.obj")) {
 	//if (!mesh->loadMesh(device, "./assets/castle/castle01.obj")) {
 		//MessageBox(NULL, L"Error trying to initialize mesh", L"ERROR", MB_OK);
 		//return false;
 	//}
+
+
+	/**** INITIALIZE VIEWPORT  ****/
+	initializeViewPort();
+
+
+	//worldMatrix = XMMatrixIdentity();
+
+	/*orthoMatrix = XMMatrixOrthographicLH((float) Globals::WINDOW_WIDTH, (float) Globals::WINDOW_HEIGHT,
+	Globals::SCREEN_NEAR, Globals::SCREEN_DEPTH);*/
+
 
 	camera = new Camera();
 	//camera->setPosition(0.0f, 1.0f, -5.0f);
@@ -72,7 +75,7 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 	light->setDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	light->setDirection(1.0f, 0.0f, 0.0f);
 
-	
+
 
 
 	testText();
@@ -119,10 +122,10 @@ void GraphicsEngine::initializeViewPort() {
 
 	viewport.Width = (float) Globals::WINDOW_WIDTH;
 	viewport.Height = (float) Globals::WINDOW_HEIGHT;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
 	viewport.TopLeftX = 0.0f;
 	viewport.TopLeftY = 0.0f;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
 
 	deviceContext->RSSetViewports(1, &viewport);
 
@@ -240,7 +243,7 @@ void GraphicsEngine::update(double time, int fps) {
 	wstring str(ws.str());
 	textFactory->editText(timer, str);
 
-	XMVECTOR eyePosition = XMVectorSet(0, 0, -10, 1);
+	XMVECTOR eyePosition = XMVectorSet(0, 15.0f, -165.0f, 1);
 	XMVECTOR focusPoint = XMVectorSet(0, 0, 0, 1);
 	XMVECTOR upDirection = XMVectorSet(0, 1, 0, 0);
 	viewMatrix = XMMatrixLookAtLH(eyePosition, focusPoint, upDirection);
@@ -251,11 +254,11 @@ void GraphicsEngine::update(double time, int fps) {
 	angle += 90.0f * time;
 	XMVECTOR rotationAxis = XMVectorSet(0, 1, 1, 0);
 
-	worldMatrix = XMMatrixRotationAxis(rotationAxis, XMConvertToRadians(angle));
-	deviceContext->UpdateSubresource(constantBuffers[PerObjectBuffer], 0, nullptr, &worldMatrix, 0, 0);
+	model->worldMatrix = XMMatrixRotationAxis(rotationAxis, XMConvertToRadians(angle));
+	// moved updatesubresource to render function in model3d
 
 
-	camera->setViewMatrix(viewMatrix);
+	//camera->setViewMatrix(viewMatrix);
 }
 
 
@@ -266,17 +269,19 @@ void GraphicsEngine::render() {
 	deviceContext->ClearDepthStencilView(depthStencilView,
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, clearDepth, clearStencil);
 
+	deviceContext->VSSetConstantBuffers(0, 1, &constantBuffers[ApplicationBuffer]);
+
 	textFactory->draw();
 
-	camera->render();
-	
+	//camera->render();
+
+	shaderManager->render(deviceContext, constantBuffers);
 
 
-	
-	if (!shaders->lightShader->render(deviceContext, meshLoader, worldMatrix, camera->getViewMatrix() , projectionMatrix, light)) {
+	/*if (!shaders->lightShader->render(deviceContext, meshLoader, worldMatrix, camera->getViewMatrix() , projectionMatrix, light)) {
 		MessageBox(NULL, L"Light Shader malfunction.", L"ERROR", MB_OK);
-	}
-	meshLoader->render(deviceContext);
+	}*/
+
 	//mesh->renderStatic(deviceContext);
 	/*if (!lightShader->render(deviceContext, mesh->getIndexCount(), worldMatrix, viewMatrix,
 			projectionMatrix, NULL, light->direction, light->diffuseColor))
@@ -292,12 +297,15 @@ void GraphicsEngine::shutdown() {
 	if (light)
 		delete light;
 
-	if (shaders) {
-		shaders->release();
-		delete shaders;
+	if (shaderManager) {
+		shaderManager->release();
+		delete shaderManager;
 	}
 
-
+	for each (ID3D11Buffer* buffer in constantBuffers) {
+		if (buffer)
+			buffer->Release();
+	}
 
 	if (meshLoader)
 		delete meshLoader;

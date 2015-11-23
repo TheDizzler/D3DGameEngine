@@ -3,76 +3,77 @@
 
 Camera::Camera() {
 
-	positionX = 0.0f;
-	positionY = 0.0f;
-	positionZ = 0.0f;
+	position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
-	rotationX = 0.0f;
-	rotationY = 0.0f;
-	rotationZ = 0.0f;
-}
-
-Camera::~Camera() {
-}
-
-void Camera::setPosition(float x, float y, float z) {
-
-	positionX = x;
-	positionY = y;
-	positionZ = z;
-}
-
-void Camera::setRotation(float x, float y, float z) {
-
-	rotationX = x;
-	rotationY = y;
-	rotationZ = z;
-}
-
-XMFLOAT3 Camera::getPosition() {
-	return XMFLOAT3(positionX, positionY, positionZ);
-}
-
-XMFLOAT3 Camera::getRotation() {
-	return XMFLOAT3(rotationX, rotationY, rotationZ);
-}
-
-void Camera::render() {
-
-	XMFLOAT3 up, position, lookAt;
-	XMVECTOR upVector, positionVector, lookAtVector;
-	float yaw, pitch, roll;
-	XMMATRIX rotationMatrix;
-
+	rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
 	// Setup the vector that points upwards.
 	up.x = 0.0f;
 	up.y = 1.0f;
 	up.z = 0.0f;
 
-	// Load it into a XMVECTOR structure.
-	upVector = XMLoadFloat3(&up);
-
-	// Setup the position of the camera in the world.
-	position.x = positionX;
-	position.y = positionY;
-	position.z = positionZ;
-
-	// Load it into a XMVECTOR structure.
-	positionVector = XMLoadFloat3(&position);
-
 	// Setup where the camera is looking by default.
 	lookAt.x = 0.0f;
 	lookAt.y = 0.0f;
 	lookAt.z = 1.0f;
+}
+
+Camera::~Camera() {
+}
+
+
+/* Set the position of the camera in the world. */
+void Camera::setPosition(float positionX, float positionY, float positionZ) {
+
+	position = XMFLOAT3(positionX, positionY, positionZ);
+}
+
+
+void Camera::setRotation(float x, float y, float z) {
+
+	rotation = XMFLOAT3(x, y, z);
+}
+
+
+void Camera::setLookAt(float positionX, float positionY, float positionZ) {
+
+	lookAt = XMFLOAT3(positionX, positionY, positionZ);
+}
+
+XMFLOAT3 Camera::getPosition() {
+	return position;
+}
+
+XMFLOAT3 Camera::getRotation() {
+	return rotation;
+}
+
+void Camera::render() {
+
+	
+	XMVECTOR upVector, positionVector, lookAtVector;
+	float yaw, pitch, roll;
+	XMMATRIX rotationMatrix;
+
+
+	
+
+	// Load it into a XMVECTOR structure.
+	upVector = XMLoadFloat3(&up);
+
+	
+
+	// Load it into a XMVECTOR structure.
+	positionVector = XMLoadFloat3(&position);
+
 
 	// Load it into a XMVECTOR structure.
 	lookAtVector = XMLoadFloat3(&lookAt);
 
 	// Set the yaw (Y axis), pitch (X axis), and roll (Z axis) rotations in radians.
-	pitch = rotationX * 0.0174532925f;
-	yaw = rotationY * 0.0174532925f;
-	roll = rotationZ * 0.0174532925f;
+	pitch = rotation.x * 0.0174532925f;
+	yaw = rotation.y * 0.0174532925f;
+	roll = rotation.z * 0.0174532925f;
 
 	// Create the rotation matrix from the yaw, pitch, and roll values.
 	rotationMatrix = XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
@@ -88,6 +89,7 @@ void Camera::render() {
 	viewMatrix = XMMatrixLookAtLH(positionVector, lookAtVector, upVector);
 }
 
+
 void Camera::setViewMatrix(XMMATRIX &view) {
 
 	view = viewMatrix;
@@ -98,3 +100,5 @@ XMMATRIX Camera::getViewMatrix() {
 
 	return viewMatrix;
 }
+
+

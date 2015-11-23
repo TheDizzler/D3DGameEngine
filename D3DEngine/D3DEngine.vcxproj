@@ -168,7 +168,7 @@
     <ClCompile Include="source\LightSource.cpp" />
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\MeshLoader.cpp" />
-    <ClCompile Include="Source\Model.cpp" />
+    <ClCompile Include="Source\Model3D.cpp" />
     <ClCompile Include="Source\shaders\BaseShader.cpp" />
     <ClCompile Include="Source\shaders\ColorShader.cpp" />
     <ClCompile Include="Source\shaders\LightShader.cpp" />
@@ -189,7 +189,7 @@
     <ClInclude Include="Source\Input.h" />
     <ClInclude Include="Source\LightSource.h" />
     <ClInclude Include="Source\MeshLoader.h" />
-    <ClInclude Include="Source\model.h" />
+    <ClInclude Include="Source\Model3D.h" />
     <ClInclude Include="Source\shaders\BaseShader.h" />
     <ClInclude Include="Source\shaders\ColorShader.h" />
     <ClInclude Include="Source\shaders\LightShader.h" />

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "D3DEnginePCH.h"
 #include "Utils.h"
 
 #include "DDSTextureLoader.h"

@@ -2,7 +2,7 @@
 
 #include "Texture.h"
 
-using namespace DirectX;
+//using namespace DirectX;
 using namespace std;
 
 
@@ -22,27 +22,22 @@ public:
 			numVerts = numIndices = 0;
 		}
 
+		bool hasTexture = false;
 		Texture texture;
 		vector<Vertex> vertices;
 		vector<unsigned int> indices;
 
 		unsigned int numVerts, numIndices;
 
-		ID3D11Buffer *vertexBuffer = 0;
-		ID3D11Buffer *indexBuffer = 0;
+		ID3D11Buffer* vertexBuffer = 0;
+		ID3D11Buffer* indexBuffer = 0;
 
 		unsigned int stride = sizeof(Vertex);
 		unsigned int offset = 0;
 
 		void render(ID3D11DeviceContext* deviceContext);
 
-		void release() {
-			if (vertexBuffer)
-				vertexBuffer->Release();
-			if (indexBuffer)
-				indexBuffer->Release();
-
-		}
+		void release();
 	};
 
 
@@ -56,12 +51,15 @@ public:
 	string filepath;
 	vector<MeshData> meshData;
 
+	XMMATRIX worldMatrix;
+
 	unsigned int numMeshes = 0, numTotalVerts = 0, numTotalIndices = 0;
 
-	void render(ID3D11DeviceContext* deviceContext);
+	void render(ID3D11DeviceContext* deviceContext, ID3D11Buffer* constantBuffers[]);
+
 
 private:
 
-	XMMATRIX worldMatrix;
+	
 
 };

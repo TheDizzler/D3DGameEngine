@@ -1,14 +1,14 @@
 cbuffer ApplicationBuffer : register(b0) {
 	matrix projectionMatrix;
-}
+};
 
 cbuffer PerFrameBuffer : register(b1) {
 	matrix viewMatrix;
-}
+};
 
 cbuffer PerObjectBuffer : register(b2) {
 	matrix worldMatrix;
-}
+};
 
 /* Object that gets delivered from Input Assembler. */
 struct AppData {
@@ -16,7 +16,7 @@ struct AppData {
 	float2 tex : TEXCOORD;
 	float3 normal : NORMAL;
 	float3 tangent : TANGENT;
-}
+};
 
 /* Object that gets sent to Rasterizer from here. */
 struct VertexShaderOutput {
@@ -24,7 +24,7 @@ struct VertexShaderOutput {
 	float2 tex : TEXCOORD;
 	float3 normal : NORMAL;
 	float3 tangent : TANGENT;
-}
+};
 
 
 VertexShaderOutput ImpVertexShader(AppData IN) {
@@ -34,7 +34,7 @@ VertexShaderOutput ImpVertexShader(AppData IN) {
 	matrix mvp = mul(projectionMatrix, mul(viewMatrix, worldMatrix));
 	OUT.position = mul(mvp, float4(IN.position, 1.0f));
 	
-	OUT.tex = input.tex;
+	OUT.tex = IN.tex;
 
 	// Calculate the normal vector against the world matrix only.
 	OUT.normal = mul(IN.normal, (float3x3)worldMatrix);
