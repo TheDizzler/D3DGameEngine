@@ -170,11 +170,7 @@
     <ClCompile Include="Source\MeshLoader.cpp" />
     <ClCompile Include="Source\Model3D.cpp" />
     <ClCompile Include="Source\shaders\BaseShader.cpp" />
-    <ClCompile Include="Source\shaders\ColorShader.cpp" />
-    <ClCompile Include="Source\shaders\LightShader.cpp" />
-    <ClCompile Include="Source\shaders\ShaderBase.cpp" />
     <ClCompile Include="Source\shaders\ShaderManager.cpp" />
-    <ClCompile Include="Source\shaders\TextureShader.cpp" />
     <ClCompile Include="Source\TextFactory.cpp" />
     <ClCompile Include="Source\Texture.cpp" />
     <ClCompile Include="Source\Utils.cpp" />
@@ -191,39 +187,13 @@
     <ClInclude Include="Source\MeshLoader.h" />
     <ClInclude Include="Source\Model3D.h" />
     <ClInclude Include="Source\shaders\BaseShader.h" />
-    <ClInclude Include="Source\shaders\ColorShader.h" />
-    <ClInclude Include="Source\shaders\LightShader.h" />
-    <ClInclude Include="Source\shaders\ShaderBase.h" />
     <ClInclude Include="Source\shaders\ShaderManager.h" />
-    <ClInclude Include="Source\shaders\TextureShader.h" />
     <ClInclude Include="Source\TextFactory.h" />
     <ClInclude Include="Source\Texture.h" />
     <ClInclude Include="Source\Utils.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="Source\shaders\DiffusePixelShader.hlsl" />
-    <None Include="Source\shaders\DiffuseVertexShader.hlsl" />
-    <None Include="Source\shaders\ColorPixelShader.hlsl">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Source\shaders\TexturePixelShader.hlsl">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Source\shaders\TextureVertexShader.hlsl">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Source\shaders\ColorVertexShader.hlsl">
-      <FileType>Document</FileType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Source\shaders\LightPixelShader.hlsl">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Source\shaders\LightVertexShader.hlsl">
-      <FileType>Document</FileType>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="cube.txt" />
@@ -248,6 +218,21 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Source\shaders\SimpleVertexShader.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Source\shaders\InstancedVertexShader.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Source\shaders\TexturedLitPixelShader.hlsl">
+      <FileType>Document</FileType>
     </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

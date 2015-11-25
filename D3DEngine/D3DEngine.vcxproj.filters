@@ -77,22 +77,7 @@
     <ClCompile Include="Source\shaders\ShaderManager.cpp">
       <Filter>Source Files\Graphics\Shaders</Filter>
     </ClCompile>
-    <ClCompile Include="Source\shaders\ShaderBase.cpp">
-      <Filter>Source Files\Graphics\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\shaders\TextureShader.cpp">
-      <Filter>Source Files\Graphics\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\shaders\LightShader.cpp">
-      <Filter>Source Files\Graphics\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\shaders\ColorShader.cpp">
-      <Filter>Source Files\Graphics\Shaders</Filter>
-    </ClCompile>
     <ClCompile Include="Source\D3DEnginePCH.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\shaders\BaseShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\MeshLoader.cpp">
@@ -100,6 +85,9 @@
     </ClCompile>
     <ClCompile Include="Source\Model3D.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\shaders\BaseShader.cpp">
+      <Filter>Source Files\Graphics\Shaders</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -136,22 +124,7 @@
     <ClInclude Include="Source\shaders\ShaderManager.h">
       <Filter>Header Files\Graphics\Shaders</Filter>
     </ClInclude>
-    <ClInclude Include="Source\shaders\TextureShader.h">
-      <Filter>Header Files\Graphics\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\shaders\ShaderBase.h">
-      <Filter>Header Files\Graphics\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\shaders\LightShader.h">
-      <Filter>Header Files\Graphics\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\shaders\ColorShader.h">
-      <Filter>Header Files\Graphics\Shaders</Filter>
-    </ClInclude>
     <ClInclude Include="Source\D3DEnginePCH.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\shaders\BaseShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\MeshLoader.h">
@@ -160,6 +133,9 @@
     <ClInclude Include="Source\Model3D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\shaders\BaseShader.h">
+      <Filter>Header Files\Graphics\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="cube.txt">
@@ -167,35 +143,20 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Source\shaders\LightPixelShader.hlsl">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Source\shaders\LightVertexShader.hlsl">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Source\shaders\TexturePixelShader.hlsl">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Source\shaders\TextureVertexShader.hlsl">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="packages.config" />
-    <None Include="Source\shaders\DiffusePixelShader.hlsl">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Source\shaders\DiffuseVertexShader.hlsl">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Source\shaders\ColorVertexShader.hlsl">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Source\shaders\ColorPixelShader.hlsl">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="Source\shaders\ImpVertexShader.hlsl">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Source\shaders\ImpPixelShader.hlsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Source\shaders\SimpleVertexShader.hlsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Source\shaders\InstancedVertexShader.hlsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Source\shaders\TexturedLitPixelShader.hlsl">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

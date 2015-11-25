@@ -10,7 +10,7 @@ Model::Model() {
 
 Model::~Model() {
 
-	QuickMessage(L"Release check");
+	//QuickMessage(L"Release check");
 	for (MeshData mesh : meshData) {
 		mesh.release();
 	}

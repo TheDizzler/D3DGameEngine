@@ -1,6 +1,6 @@
 #define MAX_LIGHTS 8
 
-// Light types.
+// Light types
 #define DIRECTIONAL_LIGHT 0
 #define POINT_LIGHT 1
 #define SPOT_LIGHT 2
@@ -18,7 +18,7 @@ struct Material {
 	float4  specular;       // 16 bytes
 							//----------------------------------- (16 byte boundary)
 	float   specularPower;  // 4 bytes
-	bool    useTexture;     // 4 bytes
+	bool    hasTexture;     // 4 bytes
 	float2  padding;        // 8 bytes
 							//----------------------------------- (16 byte boundary)
 };  // Total:               // 80 bytes ( 5 * 16 )
@@ -27,7 +27,6 @@ struct Material {
 cbuffer MaterialProperties : register(b0) {
 	Material material;
 };
-
 
 struct Light {
 	float4      position;               // 16 bytes
@@ -46,7 +45,6 @@ struct Light {
 	int2        padding;                // 8 bytes
 										//----------------------------------- (16 byte boundary)
 };  // Total:                           // 80 bytes (5 * 16 byte boundary)
-
 
 cbuffer LightProperties : register(b1) {
 	float4 eyePosition;                 // 16 bytes
@@ -87,7 +85,7 @@ struct LightingResult {
 };
 
 LightingResult doPointLight(Light light, float3 V, float4 P, float3 N) {
-	
+
 	LightingResult result;
 
 	float3 L = (light.position - P).xyz;
@@ -103,7 +101,7 @@ LightingResult doPointLight(Light light, float3 V, float4 P, float3 N) {
 }
 
 LightingResult doDirectionalLight(Light light, float3 V, float4 P, float3 N) {
-	
+
 	LightingResult result;
 
 	float3 L = -light.direction.xyz;
@@ -115,6 +113,7 @@ LightingResult doDirectionalLight(Light light, float3 V, float4 P, float3 N) {
 }
 
 float doSpotCone(Light light, float3 L) {
+
 	float spotMinAngle = cos(light.spotAngle);
 	float spotMaxAngle = (spotMinAngle + 1.0f) / 2.0f;
 	float cosAngle = dot(light.direction.xyz, L);
@@ -122,7 +121,7 @@ float doSpotCone(Light light, float3 L) {
 }
 
 LightingResult doSpotLight(Light light, float3 V, float4 P, float3 N) {
-	
+
 	LightingResult result;
 
 	float3 L = (light.position - P).xyz;
@@ -139,7 +138,7 @@ LightingResult doSpotLight(Light light, float3 V, float4 P, float3 N) {
 }
 
 LightingResult computeLighting(float4 P, float3 N) {
-	
+
 	float3 V = normalize(EyePosition - P).xyz;
 
 	LightingResult totalResult = {{0, 0, 0, 0},{0, 0, 0, 0}};
@@ -152,20 +151,14 @@ LightingResult computeLighting(float4 P, float3 N) {
 
 		switch (Lights[i].lightType) {
 			case DIRECTIONAL_LIGHT:
-			{
 				result = doDirectionalLight(Lights[i], V, P, N);
-			}
-			break;
+				break;
 			case POINT_LIGHT:
-			{
 				result = doPointLight(Lights[i], V, P, N);
-			}
-			break;
+				break;
 			case SPOT_LIGHT:
-			{
 				result = doSpotLight(Lights[i], V, P, N);
-			}
-			break;
+				break;
 		}
 		totalResult.diffuse += result.diffuse;
 		totalResult.specular += result.specular;
@@ -182,12 +175,11 @@ struct PixelShaderInput {
 	float4 positionWS   : TEXCOORD1;
 	float3 normalWS     : TEXCOORD2;
 	float2 texCoord     : TEXCOORD0;
-	//float4 position     : SV_Position;
 };
 
 
 
-float4 ImpPixelShader(PixelShaderInput IN) : SV_TARGET{
+float4 TexturedLitPixelShader(PixelShaderInput IN) : SV_TARGET{
 
 	LightingResult lit = computeLighting(IN.positionWS, normalize(IN.normalWS));
 
@@ -196,9 +188,9 @@ float4 ImpPixelShader(PixelShaderInput IN) : SV_TARGET{
 	float4 diffuse = Material.diffuse * lit.diffuse;
 	float4 specular = Material.specular * lit.specular;
 
-	float4 texColor = { 1, 1, 1, 1 };
+	float4 texColor = {1, 1, 1, 1};
 
-	if (Material.useTexture) {
+	if (Material.hasTexture) {
 		texColor = shaderTexture.Sample(samplerState, IN.texCoord);
 	}
 

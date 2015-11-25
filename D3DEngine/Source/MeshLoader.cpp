@@ -27,21 +27,35 @@ TRESULTS MeshLoader::loadMesh(ID3D11Device* device, const string filename) {
 
 
 	scene = assimp.ReadFile(filename,
-		aiProcess_Triangulate // translate models made from non triangle polygons into triangle based meshes
-		| aiProcess_GenSmoothNormals // generates vertex normals if model does not already contain them
-		| aiProcess_FlipUVs // flips texture coordinates along the Y axis
-		| aiProcess_CalcTangentSpace
-		| aiProcess_PreTransformVertices
-		| aiProcess_FixInfacingNormals
-		| aiProcess_FindInvalidData
-		| aiProcess_ValidateDataStructure
-		//| aiProcess_ConvertToLeftHanded
-		//| aiProcess_MakeLeftHanded
-		//| aiProcess_JoinIdenticalVertices
-		//| aiProcess_SortByPType
-		//| aiProcessPreset_TargetRealtime_MaxQuality
-		//| aiProcess_LimitBoneWeights
-		//| aiProcess_OptimizeMeshes
+		aiProcess_Triangulate // translate models made from non-triangle polygons into triangle based meshes
+		| aiProcess_GenSmoothNormals // generates smooth normals if model does not already contain them
+		| aiProcess_CalcTangentSpace // Calculates the tangents and bitangents for the imported meshes
+		| aiProcess_FixInfacingNormals // tries to determine which meshes have normal vectors that are facing inwards and inverts them
+		| aiProcess_FindInvalidData // intended to get rid of some common exporter errors
+		| aiProcess_ValidateDataStructure // makes sure that all indices are valid, all animations and bones are linked correctly, all material references are correct, etc
+		| aiProcess_ConvertToLeftHanded // contains the following 3 flags for D3D standards
+		//| aiProcess_MakeLeftHanded // Converts all the imported data to a left-handed coordinate space
+		//| aiProcess_FlipUVs	// flips texture coordinates along the Y axis
+		//| aiProcess_FlipWindingOrder // adjusts the output face winding order to be CW
+
+		//| aiProcess_FindInstances // searches for duplicate meshes and replaces them with references to the first mesh
+		//| aiProcess_TransformUVCoords // applies per-texture UV transformations and bakes them into stand-alone vtexture coordinate channels
+		//| aiProcess_JoinIdenticalVertices // Identifies and joins identical vertex data sets within all imported meshes
+		//| aiProcess_SortByPType // splits meshes with more than one primitive type in homogeneous sub-meshes
+		//| aiProcess_LimitBoneWeights // Limits the number of bones simultaneously affecting a single vertex to a maximum value
+		//| aiProcess_Debone // removes bones losslessly or according to some threshold
+		//| aiProcess_SplitByBoneCount // splits meshes with many bones into sub-meshes
+		//| aiProcess_OptimizeGraph // Nodes without animations, bones, lights or cameras assigned are collapsed and joined
+		//| aiProcess_OptimizeMeshes	// joins smaller meshed into a bigger one
+		//| aiProcess_SplitLargeMeshes	// splits large meshes into smaller ones
+		//| aiProcess_RemoveComponent // Removes some parts of the data structure (animations, materials, light sources, cameras, textures, vertex components)
+		//| aiProcess_GenNormals // Generates normals for all faces of all meshes
+		//| aiProcess_ImproveCacheLocality // 	Reorders triangles for better vertex cache locality
+		//| aiProcess_RemoveRedundantMaterials // Searches for redundant/unreferenced materials and removes them
+		//| aiProcess_FindDegenerates // searches all meshes for degenerate primitives and converts them to proper lines or points
+		//| aiProcess_GenUVCoords // converts non-UV mappings (such as spherical or cylindrical mapping) to proper texture coordinate channels
+		//| aiProcess_PreTransformVertices // Removes the node graph and pre-transforms all vertices with the local transformation matrices of their nodes 
+		// more info on these flags here http://assimp.sourceforge.net/lib_html/postprocess_8h.html
 		);
 
 
@@ -93,8 +107,16 @@ bool MeshLoader::initFromScene(ID3D11Device* device, const aiScene* scene, Model
 
 		Model::MeshData data = Model::MeshData();
 		data.numVerts = mesh->mNumVertices;
-		data.numIndices = mesh->mNumFaces * 3;
-		data.vertices.resize(mesh->mNumVertices);
+		//data.numIndices = mesh->mNumFaces * 3;
+		for (size_t f = 0; f < mesh->mNumFaces; ++f) {
+			aiFace face = mesh->mFaces[f];
+			for (size_t j = 0; j < face.mNumIndices; j++) {
+				data.indices.push_back(face.mIndices[j]);
+				++data.numIndices;
+			}
+		}
+
+		//data.vertices.resize(mesh->mNumVertices);
 
 		if (mesh->mPrimitiveTypes != aiPrimitiveType_TRIANGLE) {
 
@@ -113,7 +135,7 @@ bool MeshLoader::initFromScene(ID3D11Device* device, const aiScene* scene, Model
 		if (!mesh->HasTextureCoords(0)) {
 			stringstream str;
 			str << "There are errors with this submesh, named: " << mesh->mName.data;
-			str << " \n Problem: The mesh containes no texcoords, which means there will just be color displayed. This engine does not support color mesh displays, only textured mesh!";
+			str << " \n Problem: The mesh containes no texcoords, which means only colors can displayed.";
 			ErrorMessage(str.str());
 			continue;
 		}
@@ -128,76 +150,26 @@ bool MeshLoader::initFromScene(ID3D11Device* device, const aiScene* scene, Model
 
 		// normals and tangents were created.. use those
 		for (unsigned int x = 0; x < mesh->mNumVertices; ++x) {
+
 			Model::Vertex v;
-			v.position = XMFLOAT3(mesh->mVertices[x].x, mesh->mVertices[x].y, mesh->mVertices[x].z);
+			v.position = XMFLOAT3(mesh->mVertices[x].x,
+				mesh->mVertices[x].y, mesh->mVertices[x].z);
 
-			v.textureCoords = XMFLOAT2(mesh->mTextureCoords[0][x].x, mesh->mTextureCoords[0][x].y);
+			v.textureCoords = XMFLOAT2(mesh->mTextureCoords[0][x].x,
+				mesh->mTextureCoords[0][x].y);
 
-			v.normal = XMFLOAT3(mesh->mNormals[x].x, mesh->mNormals[x].y, mesh->mNormals[x].z);
+			v.normal = XMFLOAT3(mesh->mNormals[x].x,
+				mesh->mNormals[x].y, mesh->mNormals[x].z);
 
-			v.tangent = XMFLOAT3(mesh->mTangents[x].x, mesh->mTangents[x].y, mesh->mTangents[x].z);
-
-			data.vertices[x] = v;
+			v.tangent = XMFLOAT3(mesh->mTangents[x].x,
+				mesh->mTangents[x].y, mesh->mTangents[x].z);
+			
+			//data.vertices[x] = v;
+			data.vertices.push_back(v);
 		}
 
-		aiString path;
 
-		const aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-
-
-		if (aiGetMaterialString(material, AI_MATKEY_TEXTURE_DIFFUSE(0), &path) == AI_SUCCESS) {
-
-			/*aiString aiStr;
-			stringstream str;
-			material->Get(AI_MATKEY_NAME, aiStr);
-			str << "AI_MATKEY_NAME: " << aiStr.data;
-			str << "\n PATH: " << path.data;
-			str << "\n modelname: " << modelData->modelName;
-			str << "\n filepath: " << modelData->filepath;
-			Utils::ErrorMessage(str);*/
-
-
-			size_t origsize = strlen(path.data) + 1;
-			const size_t newsize = 100;
-			size_t convertedChars = 0;
-			wchar_t wcstring[newsize];
-			mbstowcs_s(&convertedChars, wcstring, origsize, path.data, _TRUNCATE);
-			wcscat_s(wcstring, L"");
-
-
-			wstring out = wstring(model->filepath.begin(), model->filepath.end());
-			out += wstring(wcstring);
-			const wchar_t* texturepath = out.c_str();
-
-			//MessageBox(NULL, texturepath, L"CHECK", MB_OK); // check if filenames are correct
-
-			Texture diffuse = Texture();
-			if (diffuse.initialize(device, texturepath)) {
-				data.hasTexture = true;
-				data.texture = diffuse;
-			} else
-				data.hasTexture = false;
-
-		} else {
-
-			data.hasTexture = false;
-			//MessageBox(NULL, L"No diffuse texture found", L"WARNING", MB_OK);
-
-			/*stringstream str;
-			str << "aiTextureType_AMBIENT: " << material->GetTextureCount(aiTextureType_AMBIENT);
-			str << " \n aiTextureType_DIFFUSE: " << material->GetTextureCount(aiTextureType_DIFFUSE);
-			str << " \n aiTextureType_DISPLACEMENT: " << material->GetTextureCount(aiTextureType_DISPLACEMENT);
-			str << " \n aiTextureType_EMISSIVE: " << material->GetTextureCount(aiTextureType_EMISSIVE);
-			str << " \n aiTextureType_HEIGHT: " << material->GetTextureCount(aiTextureType_HEIGHT);
-			str << " \n aiTextureType_LIGHTMAP: " << material->GetTextureCount(aiTextureType_LIGHTMAP);
-			str << " \n aiTextureType_NORMALS: " << material->GetTextureCount(aiTextureType_NORMALS);
-			str << " \n aiTextureType_OPACITY: " << material->GetTextureCount(aiTextureType_OPACITY);
-			str << " \n aiTextureType_REFLECTION: " << material->GetTextureCount(aiTextureType_REFLECTION);
-			str << " \n aiTextureType_SHININESS: " << material->GetTextureCount(aiTextureType_SHININESS);
-			str << " \n aiTextureType_SPECULAR: " << material->GetTextureCount(aiTextureType_SPECULAR);
-			str << " \n aiTextureType_UNKNOWN: " << material->GetTextureCount(aiTextureType_UNKNOWN);
-			Utils::ErrorMessage(str);*/
-		}
+		getMaterialProperties(device, scene->mMaterials[mesh->mMaterialIndex], model, data);
 
 
 		if (!initializeBuffers(device, &data)) {
@@ -213,6 +185,141 @@ bool MeshLoader::initFromScene(ID3D11Device* device, const aiScene* scene, Model
 }
 
 
+void MeshLoader::getMaterialProperties(ID3D11Device* device, const aiMaterial* material,
+	Model* model, Model::MeshData data) {
+
+	aiString path;
+
+	/*vector<Texture> diffuseMaps = this->loadMaterialTextures(material,
+		aiTextureType_DIFFUSE, "texture_diffuse");
+	textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+	vector<Texture> specularMaps = this->loadMaterialTextures(material,
+		aiTextureType_SPECULAR, "texture_specular");
+	textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());*/
+
+	if (aiGetMaterialString(material, AI_MATKEY_TEXTURE_DIFFUSE(0), &path) == AI_SUCCESS) {
+
+		/*aiString aiStr;
+		stringstream str;
+		material->Get(AI_MATKEY_NAME, aiStr);
+		str << "AI_MATKEY_NAME: " << aiStr.data;
+		str << "\n PATH: " << path.data;
+		str << "\n modelname: " << modelData->modelName;
+		str << "\n filepath: " << modelData->filepath;
+		Utils::ErrorMessage(str);*/
+
+
+		size_t origsize = strlen(path.data) + 1;
+		const size_t newsize = 100;
+		size_t convertedChars = 0;
+		wchar_t wcstring[newsize];
+		mbstowcs_s(&convertedChars, wcstring, origsize, path.data, _TRUNCATE);
+		wcscat_s(wcstring, L"");
+
+
+		wstring out = wstring(model->filepath.begin(), model->filepath.end());
+		out += wstring(wcstring);
+		const wchar_t* texturepath = out.c_str();
+
+		//MessageBox(NULL, texturepath, L"CHECK", MB_OK); // check if filenames are correct
+
+		Texture diffuse = Texture();
+		if (diffuse.initialize(device, texturepath)) {
+			data.hasTexture = true;
+			data.texture = diffuse;
+		} else
+			data.hasTexture = false;
+
+	} else {
+
+		data.hasTexture = false;
+		//MessageBox(NULL, L"No diffuse texture found", L"WARNING", MB_OK);
+
+		/*stringstream str;
+		str << "aiTextureType_AMBIENT: " << material->GetTextureCount(aiTextureType_AMBIENT);
+		str << " \n aiTextureType_DIFFUSE: " << material->GetTextureCount(aiTextureType_DIFFUSE);
+		str << " \n aiTextureType_DISPLACEMENT: " << material->GetTextureCount(aiTextureType_DISPLACEMENT);
+		str << " \n aiTextureType_EMISSIVE: " << material->GetTextureCount(aiTextureType_EMISSIVE);
+		str << " \n aiTextureType_HEIGHT: " << material->GetTextureCount(aiTextureType_HEIGHT);
+		str << " \n aiTextureType_LIGHTMAP: " << material->GetTextureCount(aiTextureType_LIGHTMAP);
+		str << " \n aiTextureType_NORMALS: " << material->GetTextureCount(aiTextureType_NORMALS);
+		str << " \n aiTextureType_OPACITY: " << material->GetTextureCount(aiTextureType_OPACITY);
+		str << " \n aiTextureType_REFLECTION: " << material->GetTextureCount(aiTextureType_REFLECTION);
+		str << " \n aiTextureType_SHININESS: " << material->GetTextureCount(aiTextureType_SHININESS);
+		str << " \n aiTextureType_SPECULAR: " << material->GetTextureCount(aiTextureType_SPECULAR);
+		str << " \n aiTextureType_UNKNOWN: " << material->GetTextureCount(aiTextureType_UNKNOWN);
+		Utils::ErrorMessage(str);*/
+	}
+
+	//path.Clear();
+
+	if (aiGetMaterialString(material, AI_MATKEY_TEXTURE_AMBIENT(0), &path) == AI_SUCCESS) {
+
+		QuickMessage(L"Found an Ambient");
+
+	}
+
+	if (aiGetMaterialString(material, AI_MATKEY_TEXTURE_EMISSIVE(0), &path) == AI_SUCCESS) {
+
+		QuickMessage(L"Found an Emissive");
+	}
+
+	if (aiGetMaterialString(material, AI_MATKEY_TEXTURE_SPECULAR(0), &path) == AI_SUCCESS) {
+
+		QuickMessage(L"Found a Specular");
+	}
+
+	if (aiGetMaterialString(material, AI_MATKEY_TEXTURE_SHININESS(0), &path) == AI_SUCCESS) {
+
+		QuickMessage(L"Found a Shininess");
+	}
+
+	if (aiGetMaterialString(material, AI_MATKEY_TEXTURE_DISPLACEMENT(0), &path) == AI_SUCCESS) {
+
+		QuickMessage(L"Found a Displacement");
+	}
+
+	if (aiGetMaterialString(material, AI_MATKEY_TEXTURE_HEIGHT(0), &path) == AI_SUCCESS) {
+
+		QuickMessage(L"Found a Height");
+	}
+
+	if (aiGetMaterialString(material, AI_MATKEY_TEXTURE_LIGHTMAP(0), &path) == AI_SUCCESS) {
+
+		QuickMessage(L"Found a LightMap");
+	}
+
+	if (aiGetMaterialString(material, AI_MATKEY_TEXTURE_NORMALS(0), &path) == AI_SUCCESS) {
+
+		QuickMessage(L"Found a Nomrals");
+	}
+
+	if (aiGetMaterialString(material, AI_MATKEY_TEXTURE_OPACITY(0), &path) == AI_SUCCESS) {
+
+		QuickMessage(L"Found a Opacity");
+	}
+
+	if (aiGetMaterialString(material, AI_MATKEY_TEXTURE_REFLECTION(0), &path) == AI_SUCCESS) {
+
+		QuickMessage(L"Found a Reflection");
+	}
+
+
+}
+
+//vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName) {
+//	vector<Texture> textures;
+//	for (GLuint i = 0; i < mat->GetTextureCount(type); i++) {
+//		aiString str;
+//		mat->GetTexture(type, i, &str);
+//		Texture texture;
+//		texture.id = TextureFromFile(str.C_Str(), this->directory);
+//		texture.type = typeName;
+//		texture.path = str;
+//		textures.push_back(texture);
+//	}
+//	return textures;
+//}
 
 bool MeshLoader::initializeBuffers(ID3D11Device* device, Model::MeshData* meshData) {
 
@@ -223,7 +330,7 @@ bool MeshLoader::initializeBuffers(ID3D11Device* device, Model::MeshData* meshDa
 	tempVerts = new Model::Vertex[meshData->numVerts];
 	tempIndices = new unsigned long[meshData->numIndices];
 
-	
+
 	for (int j = 0; j < meshData->numVerts; ++j) {
 		tempVerts[j] = meshData->vertices[j];
 		tempIndices[j] = j;

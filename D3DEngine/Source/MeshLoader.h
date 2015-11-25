@@ -32,6 +32,8 @@ private:
 	//ID3D11InputLayout* layout;
 
 	bool initFromScene(ID3D11Device* device, const aiScene* scene, Model* model);
+	void getMaterialProperties(ID3D11Device* device, const aiMaterial* material,
+		Model* model, Model::MeshData data);
 	bool initializeBuffers(ID3D11Device* device, Model::MeshData* meshData);
 
 
