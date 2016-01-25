@@ -340,7 +340,7 @@ static void CreateBuffer(_In_ ID3D11Device* device, T const& data, D3D11_BIND_FL
 	dataDesc.pSysMem = data.data();
 
 	HRESULT hr = device->CreateBuffer(&bufferDesc, &dataDesc, pBuffer);
-	if (FAILED(hr)) {
+	if (reportError(hr)) {
 		throw std::exception("Failed to create buffer.");
 	}
 }

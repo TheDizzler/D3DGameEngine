@@ -1,10 +1,18 @@
+#include <CommCtrl.h>
+
 #include "GraphicsEngine.h"
 //#include "Input.h"
 #include "Globals.h"
+#include "../resource.h"
 
 
 HWND hwnd;
+HWND dialog;
+HWND adapterComboBox;
 //Input* input;
+
+bool closing = false;
+
 
 double countsPerSecond = 0.0;
 __int64 counterStart = 0;
@@ -21,7 +29,7 @@ int messageLoop();
 
 bool initWindow(HINSTANCE hInstance, int showWnd, bool windowed);
 LRESULT CALLBACK wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
+INT_PTR CALLBACK dialogProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
 
 
@@ -58,7 +66,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
 	gfxEngine = new GraphicsEngine();
-	if (!gfxEngine->initGFXEngine(hInstance, hwnd)) {
+	if (!gfxEngine->initGFXEngine(hInstance, hwnd, dialog)) {
 		MessageBox(0, L"Direct3D Initialization Failed", L"Error", MB_OK);
 		shutdown();
 		return 0;
@@ -133,8 +141,10 @@ int messageLoop() {
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) { // if it's a windows message
 			if (msg.message == WM_QUIT)
 				break;
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			if (dialog == 0 || !IsDialogMessage(dialog, &msg)) {
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
 		} else {	// game code
 			frameCount++;
 			if (getTime() > 1.0f) {
@@ -147,7 +157,7 @@ int messageLoop() {
 
 			//gfxEngine->input->detectInput(frameTime);
 			gfxEngine->update(frameTime, fps);
-			gfxEngine->render();
+			//gfxEngine->render();
 		}
 
 	}
@@ -168,23 +178,23 @@ bool initWindow(HINSTANCE hInstance, int showWnd, bool windowed) {
 	wc.cbWndExtra = 0;
 	wc.hInstance = hInstance;
 	wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
-	wc.hIconSm = wc.hIcon;
+	wc.hIconSm = LoadIcon(NULL, IDI_WINLOGO);	// taskbar icon
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);	// mo' mouse cursors http://msdn.microsoft.com/en-us/library/ms648391(VS.85).aspx
 	wc.hbrBackground = (HBRUSH) (COLOR_WINDOW + 1);
 	wc.lpszMenuName = NULL;
 	wc.lpszClassName = Globals::appName;
-	wc.hIconSm = LoadIcon(NULL, IDI_WINLOGO);	// taskbar icon
+
 
 	if (!RegisterClassEx(&wc)) {
 
-		MessageBox(NULL, L"Error registering class", L"Error", MB_OK | MB_ICONERROR);
+		MessageBox(NULL, L"Error registering main window class", L"Error", MB_OK | MB_ICONERROR);
 		return false;
 	}
 
-	
 
-	
+
 	int posX, posY;
+	posX = posY = 0;
 
 	if (Globals::FULL_SCREEN) {
 
@@ -202,7 +212,7 @@ bool initWindow(HINSTANCE hInstance, int showWnd, bool windowed) {
 		ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
 
 		// Set the position of the window to the top left corner.
-		posX = posY = 0;
+
 	} else {
 		// If windowed then set it to global default resolution
 		// and place the window in the middle of the screen.
@@ -212,7 +222,7 @@ bool initWindow(HINSTANCE hInstance, int showWnd, bool windowed) {
 
 	hwnd = CreateWindow(
 		Globals::appName,
-		Globals::appName,				// title bar text
+		L"Main Window",				// title bar text
 		WS_OVERLAPPEDWINDOW,
 		posX, posY,
 		Globals::WINDOW_WIDTH, Globals::WINDOW_HEIGHT,
@@ -231,6 +241,11 @@ bool initWindow(HINSTANCE hInstance, int showWnd, bool windowed) {
 	UpdateWindow(hwnd);
 
 	ShowCursor(true);
+
+
+	adapterComboBox = GetDlgItem(dialog, IDC_COMBO_ADAPTERS);
+
+
 
 	return true;
 
@@ -265,8 +280,19 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
 	switch (msg) {
 
-		case WM_DESTROY:	// top right x button pressed
+		case WM_CREATE:
 
+			dialog = CreateDialog(((LPCREATESTRUCT) lParam)->hInstance,
+				MAKEINTRESOURCE(DIALOG_CONFIG), hwnd, (DLGPROC) dialogProc);
+			ShowWindow(dialog, SW_SHOW);
+			RECT rcMain, rcDialog;
+			GetWindowRect(hwnd, &rcMain);
+			SetWindowPos(dialog, 0, rcMain.left, rcMain.top, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+
+			break;
+		case WM_DESTROY:	// top right x button pressed
+			closing = true;
+			SendMessage(dialog, WM_DESTROY, 0, 0);
 			PostQuitMessage(0);
 			return 0;
 			// Check if the window is being closed.
@@ -279,4 +305,37 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	}
 
 	return DefWindowProc(hwnd, msg, wParam, lParam);
+}
+
+
+INT_PTR CALLBACK dialogProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam) {
+
+	switch (message) {
+		case WM_COMMAND:
+			switch (LOWORD(wParam)) {
+				case IDC_COMBO_ADAPTERS: // If the combo box sent the message,
+					switch (HIWORD(wParam)) // Find out what message it was
+					{
+						case CBN_DROPDOWN: // This means that the list is about to display
+							break;
+						case CBN_CLOSEUP:
+							break;
+						case CBN_SELENDOK:
+							if (!gfxEngine->changeAdapters(hwnd)) {
+								ErrorMessage("Bad news");
+								PostQuitMessage(0);
+							}
+							break;
+					}
+				case WM_CLOSE:
+					return INT_PTR(FALSE);
+				case WM_DESTROY:
+					if (closing)
+						return EndDialog(hwndDlg, SW_HIDE);
+					return INT_PTR(FALSE);
+			}
+		default:
+			return INT_PTR(FALSE);
+	}
+
 }

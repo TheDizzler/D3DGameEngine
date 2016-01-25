@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Utils.h"
-
 
 using namespace std;
 
@@ -38,6 +36,7 @@ public:
 	TextFactory(ID3D11Device *device, ID3D11DeviceContext *deviceContext);
 	~TextFactory();
 
+	void changeDevice(ID3D11Device *dev, ID3D11DeviceContext *devCon);
 	void draw();
 
 	TextLabel* createText(WCHAR* text, float xPos, float yPos, float fontSize);
@@ -59,5 +58,8 @@ private:
 
 	ID3D11Device *device;
 	ID3D11DeviceContext *deviceContext;
+
+
+	void initialize(ID3D11Device *dev, ID3D11DeviceContext *devCon);
 };
 

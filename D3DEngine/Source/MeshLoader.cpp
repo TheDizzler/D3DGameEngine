@@ -352,7 +352,7 @@ bool MeshLoader::initializeBuffers(ID3D11Device* device, Model::MeshData* meshDa
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
 
-	if (FAILED(device->CreateBuffer(&vertexBufferDesc, &vertexData, &meshData->vertexBuffer))) {
+	if (reportError(device->CreateBuffer(&vertexBufferDesc, &vertexData, &meshData->vertexBuffer))) {
 		MessageBox(NULL, L"Error creating Vertex Buffer", L"ERROR", MB_OK);
 		delete tempVerts;
 		delete tempIndices;
@@ -375,7 +375,7 @@ bool MeshLoader::initializeBuffers(ID3D11Device* device, Model::MeshData* meshDa
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
 
-	if (FAILED(device->CreateBuffer(&indexBufferDesc, &indexData, &meshData->indexBuffer))) {
+	if (reportError(device->CreateBuffer(&indexBufferDesc, &indexData, &meshData->indexBuffer))) {
 		MessageBox(NULL, L"Error creating Index Buffer", L"ERROR", MB_OK);
 		delete tempVerts;
 		delete tempIndices;
@@ -426,7 +426,7 @@ bool MeshLoader::initializeBuffers(ID3D11Device* device, Model::MeshData* meshDa
 //	vertexData.SysMemPitch = 0;
 //	vertexData.SysMemSlicePitch = 0;
 //
-//	if (FAILED(device->CreateBuffer(&vertexBufferDesc, &vertexData, &modelData->vertexStaticBuffer))) {
+//	if (reportError(device->CreateBuffer(&vertexBufferDesc, &vertexData, &modelData->vertexStaticBuffer))) {
 //		return false;
 //	}
 //
@@ -444,7 +444,7 @@ bool MeshLoader::initializeBuffers(ID3D11Device* device, Model::MeshData* meshDa
 //	indexData.SysMemPitch = 0;
 //	indexData.SysMemSlicePitch = 0;
 //
-//	if (FAILED(device->CreateBuffer(&indexBufferDesc, &indexData, &modelData->indexStaticBuffer))) {
+//	if (reportError(device->CreateBuffer(&indexBufferDesc, &indexData, &modelData->indexStaticBuffer))) {
 //		return false;
 //	}
 //

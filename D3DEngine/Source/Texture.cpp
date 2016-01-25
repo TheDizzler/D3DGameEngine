@@ -14,7 +14,7 @@ Texture::~Texture() {
 /** Initialize a texture from non-DDS files. */
 bool Texture::initialize(ID3D11Device* device, const wchar_t* filename) {
 
-	if (FAILED(CreateWICTextureFromFile(device, filename, &texture, &textureView))) {
+	if (reportError(CreateWICTextureFromFile(device, filename, &texture, &textureView))) {
 		stringstream str;
 		str << "Failed CreateShaderResourceViewFromFile, file name: " << filename;
 		ErrorMessage(str.str());
@@ -32,7 +32,7 @@ bool Texture::initialize(ID3D11Device* device, const wchar_t* filename) {
 bool Texture::initializeFromDDS(ID3D11Device* device, WCHAR* filename) {
 
 
-	if (FAILED(CreateDDSTextureFromFile(device, filename, NULL, &textureView))) {
+	if (reportError(CreateDDSTextureFromFile(device, filename, NULL, &textureView))) {
 		MessageBox(NULL, L"Failed to D3DX11CreateShaderResourceViewFromFile", L"ERROR", MB_OK);
 		return false;
 	}
@@ -71,7 +71,7 @@ bool Texture::initializeFromTGA(ID3D11Device* device, ID3D11DeviceContext* devic
 
 	// Create the empty texture.
 	hResult = device->CreateTexture2D(&textureDesc, NULL, &texture2d);
-	if (FAILED(hResult)) {
+	if (reportError(hResult)) {
 		return false;
 	}
 
@@ -89,7 +89,7 @@ bool Texture::initializeFromTGA(ID3D11Device* device, ID3D11DeviceContext* devic
 
 	// Create the shader resource view for the texture.
 	hResult = device->CreateShaderResourceView(texture2d, &srvDesc, &textureView);
-	if (FAILED(hResult)) {
+	if (reportError(hResult)) {
 		return false;
 	}
 

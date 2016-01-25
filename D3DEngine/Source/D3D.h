@@ -1,11 +1,13 @@
 #pragma once
 
-
+#include "../resource.h"
 #include "Globals.h"
-#include "Utils.h"
 
 using namespace DirectX;
 using namespace std;
+
+
+
 
 
 class D3D {
@@ -15,11 +17,17 @@ public:
 	~D3D();
 
 	bool initD3D(HINSTANCE hInstance, HWND hwnd);
+	bool changeAdapters(HWND hwnd);
 
 protected:
 
 
-
+	/* Adapter currently being used. */
+	IDXGIAdapter* selectedAdapter;
+	/* Handle to config dialog. */
+	HWND config;
+	/* Handle to adapter selection combobox. */
+	HWND adapterCombo;
 	/* Changes backbuffer to front buffer. */
 	IDXGISwapChain* swapChain = 0;
 	/* GPU object */
@@ -36,6 +44,7 @@ protected:
 	ID3D11RasterizerState* rasterState = 0;
 	ID3D11DepthStencilView* depthStencilView = 0;
 
+	bool haltEngine = false;
 
 	D3D_FEATURE_LEVEL featureLevel;
 	vector<IDXGIAdapter*> adapters;
@@ -54,13 +63,16 @@ protected:
 	bool initializeRasterizer();
 
 
-	bool getDisplayAdapters(UINT* numerator, UINT* denominator);
-	void getVideoCardInfo(char* cardName, int& memory);
+	bool getDisplayAdapters();
+	bool initializeAdapter(HWND hwnd, int adapterIndex);
+
+	bool virtual reInitializeAdapterGFX() = 0;
 
 	void getLatestShaderVersions();
 	string getLatestVSVersion();
 	string getLatestPSVersion();
 
 	void shutdownD3D();
+	
 };
 

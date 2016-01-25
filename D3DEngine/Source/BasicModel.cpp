@@ -9,6 +9,17 @@ BasicModel::BasicModel(ID3D11Device * device) {
 }
 
 BasicModel::~BasicModel() {
+
+	
+}
+
+void BasicModel::changeDevice(ID3D11Device * device, ID3D11DeviceContext * deviceContext) {
+
+	effectFactory.release();
+	effectFactory = unique_ptr<EffectFactory>(new EffectFactory(device));
+	effectFactory->SetDirectory(Globals::ASSETS_DIR);
+
+	loadTextures(device, deviceContext, filename);
 }
 
 // Builds a look-at (world) matrix from a point, up and direction vectors.
@@ -234,7 +245,9 @@ void BasicModel::render(ID3D11DeviceContext * deviceContext, Camera camera,
 
 }
 
-bool BasicModel::loadTextures(ID3D11Device * device, ID3D11DeviceContext * deviceContext, const WCHAR * filename) {
+bool BasicModel::loadTextures(ID3D11Device * device, ID3D11DeviceContext * deviceContext, const WCHAR * file) {
+
+	filename = file;
 
 	try {
 		effectFactory->CreateTexture(filename, deviceContext,
@@ -254,7 +267,7 @@ bool BasicModel::loadTextures(ID3D11Device * device, ID3D11DeviceContext * devic
 	}
 
 
-	if (FAILED(initSamplerState(device))) {
+	if (reportError(initSamplerState(device))) {
 
 		ErrorMessage("Fdailed to init Sampler State");
 		return false;
@@ -299,7 +312,7 @@ bool BasicModel::loadTextures(ID3D11Device * device, ID3D11DeviceContext * devic
 
 	resourceData.pSysMem = planeVerts;
 
-	if (FAILED(device->CreateBuffer(&vertexBufferDesc, &resourceData,
+	if (reportError(device->CreateBuffer(&vertexBufferDesc, &resourceData,
 		vertexBuffer.GetAddressOf()))) {
 		ErrorMessage("Failed to create vertex buffer.");
 		return false;
@@ -380,7 +393,7 @@ bool BasicModel::loadTextures(ID3D11Device * device, ID3D11DeviceContext * devic
 
 
 
-	if (FAILED(device->CreateBuffer(&instanceBufferDesc, &resourceData,
+	if (reportError(device->CreateBuffer(&instanceBufferDesc, &resourceData,
 		instanceBuffer.GetAddressOf()))) {
 
 		ErrorMessage("Failed to create instance buffer.");
@@ -402,7 +415,7 @@ bool BasicModel::loadTextures(ID3D11Device * device, ID3D11DeviceContext * devic
 	resourceData.pSysMem = planeIndex;
 
 
-	if (FAILED(device->CreateBuffer(&indexBufferDesc, &resourceData, indexBuffer.GetAddressOf()))) {
+	if (reportError(device->CreateBuffer(&indexBufferDesc, &resourceData, indexBuffer.GetAddressOf()))) {
 		ErrorMessage("Failed to create index buffer.");
 		return false;
 	}
@@ -418,7 +431,7 @@ bool BasicModel::loadTextures(ID3D11Device * device, ID3D11DeviceContext * devic
 #endif
 
 	// Compile the instance vertex shader
-	if (FAILED(D3DCompileFromFile(INSTANCED_VERTEX_SHADER, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+	if (reportError(D3DCompileFromFile(INSTANCED_VERTEX_SHADER, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
 		"InstancedVertexShader", Globals::VERTEX_SHADER_VERSION,
 		flags, 0, &vertexShaderBlob, &errorBlob))) {
 		if (errorBlob) {
@@ -430,13 +443,13 @@ bool BasicModel::loadTextures(ID3D11Device * device, ID3D11DeviceContext * devic
 		return false;
 	}
 
-	if (FAILED(device->CreateVertexShader(vertexShaderBlob->GetBufferPointer(),
+	if (reportError(device->CreateVertexShader(vertexShaderBlob->GetBufferPointer(),
 		vertexShaderBlob->GetBufferSize(), NULL, instancedVertexShader.GetAddressOf()))) {
 		ErrorMessage("Failed to load instanced vertex shader.");
 		return false;
 	}
 
-	
+
 
 
 	// Create the input layout for rendering instanced vertex data.
@@ -456,16 +469,16 @@ bool BasicModel::loadTextures(ID3D11Device * device, ID3D11DeviceContext * devic
 		{"INVERSETRANSPOSEWORLDMATRIX", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	};
 
-	if (FAILED(device->CreateInputLayout(vertexLayoutDesc, _countof(vertexLayoutDesc),
+	if (reportError(device->CreateInputLayout(vertexLayoutDesc, _countof(vertexLayoutDesc),
 		vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize(),
 		&instancedInputLayout))) {
 		ErrorMessage("Failed to create input layout.");
 		return false;
 	}
 
-	
 
-	if (FAILED(D3DCompileFromFile(TEXTURED_LIT_PIXEL_SHADER, NULL, 
+
+	if (reportError(D3DCompileFromFile(TEXTURED_LIT_PIXEL_SHADER, NULL,
 		D3D_COMPILE_STANDARD_FILE_INCLUDE, "TexturedLitPixelShader",
 		Globals::PIXEL_SHADER_VERSION, flags, 0, &pixelShaderBlob, &errorBlob))) {
 		if (errorBlob) {
@@ -477,12 +490,12 @@ bool BasicModel::loadTextures(ID3D11Device * device, ID3D11DeviceContext * devic
 		return false;
 	}
 
-	if (FAILED(device->CreatePixelShader(pixelShaderBlob->GetBufferPointer(),
+	if (reportError(device->CreatePixelShader(pixelShaderBlob->GetBufferPointer(),
 		pixelShaderBlob->GetBufferSize(), NULL, texturedLitPixelShader.GetAddressOf()))) {
 		ErrorMessage("Failed to load pixel shader.");
 		return false;
 	}
-	
+
 
 	// Create a constant buffer for the per-frame data required by the instanced vertex shader.
 	D3D11_BUFFER_DESC constantBufferDesc;
@@ -493,7 +506,7 @@ bool BasicModel::loadTextures(ID3D11Device * device, ID3D11DeviceContext * devic
 	constantBufferDesc.CPUAccessFlags = 0;
 	constantBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 
-	if (FAILED(device->CreateBuffer(&constantBufferDesc, nullptr,
+	if (reportError(device->CreateBuffer(&constantBufferDesc, nullptr,
 		perFrameConstantBuffer.GetAddressOf()))) {
 		ErrorMessage("Failed to create constant buffer for per-frame data.");
 		return false;
@@ -503,7 +516,7 @@ bool BasicModel::loadTextures(ID3D11Device * device, ID3D11DeviceContext * devic
 	constantBufferDesc.ByteWidth = sizeof(PerObjectConstantBufferData);
 
 
-	if (FAILED(device->CreateBuffer(&constantBufferDesc, nullptr, &perObjectConstantBuffer))) {
+	if (reportError(device->CreateBuffer(&constantBufferDesc, nullptr, &perObjectConstantBuffer))) {
 		ErrorMessage("Failed to create constant buffer for per-object data.");
 		return false;
 	}
@@ -512,7 +525,7 @@ bool BasicModel::loadTextures(ID3D11Device * device, ID3D11DeviceContext * devic
 	constantBufferDesc.ByteWidth = sizeof(MaterialProperties);
 
 
-	if (FAILED(device->CreateBuffer(&constantBufferDesc, nullptr,
+	if (reportError(device->CreateBuffer(&constantBufferDesc, nullptr,
 		materialPropertiesConstantBuffer.GetAddressOf()))) {
 		ErrorMessage("Failed to create constant buffer for material properties.");
 		return false;
@@ -522,7 +535,7 @@ bool BasicModel::loadTextures(ID3D11Device * device, ID3D11DeviceContext * devic
 	// Create a constant buffer for the light properties required by the pixel shader.
 	constantBufferDesc.ByteWidth = sizeof(LightProperties);
 
-	if (FAILED(device->CreateBuffer(&constantBufferDesc, nullptr,
+	if (reportError(device->CreateBuffer(&constantBufferDesc, nullptr,
 		lightPropertiesConstantBuffer.GetAddressOf()))) {
 		ErrorMessage("Failed to create constant buffer for light properties.");
 		return false;
@@ -540,7 +553,7 @@ bool BasicModel::loadTextures(ID3D11Device * device, ID3D11DeviceContext * devic
 	ID3D10Blob* simpleShaderBlob;
 
 	// Load a simple vertex shader that will be used to render the shapes.
-	if (FAILED(D3DCompileFromFile(SIMPLE_VERTEX_SHADER, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+	if (reportError(D3DCompileFromFile(SIMPLE_VERTEX_SHADER, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
 		"SimpleVertexShader", Globals::VERTEX_SHADER_VERSION,
 		flags, 0, &simpleShaderBlob, &errorBlob))) {
 		if (errorBlob) {
@@ -552,14 +565,14 @@ bool BasicModel::loadTextures(ID3D11Device * device, ID3D11DeviceContext * devic
 		return false;
 	}
 
-	if (FAILED(device->CreateVertexShader(simpleShaderBlob->GetBufferPointer(),
+	if (reportError(device->CreateVertexShader(simpleShaderBlob->GetBufferPointer(),
 		simpleShaderBlob->GetBufferSize(), NULL, simpleVertexShader.GetAddressOf()))) {
 		ErrorMessage("Failed to create the simple vertex shader.");
 		return false;
 	}
 
 	// Create the input layout for the simple shapes.
-	if (FAILED(device->CreateInputLayout(VertexPositionNormalTexture::InputElements,
+	if (reportError(device->CreateInputLayout(VertexPositionNormalTexture::InputElements,
 		VertexPositionNormalTexture::InputElementCount, simpleShaderBlob->GetBufferPointer(),
 		simpleShaderBlob->GetBufferSize(), &m_d3dVertexPositionNormalTextureInputLayout))) {
 		ErrorMessage("Failed to create the input layout for the simple vertex shader.");
@@ -590,7 +603,7 @@ bool BasicModel::initializeBuffers(ID3D11Device* device) {
 
 	resourceData.pSysMem = planeVerts;
 
-	if (FAILED(device->CreateBuffer(&vertexBufferDesc, &resourceData, vertexBuffer.GetAddressOf()))) {
+	if (reportError(device->CreateBuffer(&vertexBufferDesc, &resourceData, vertexBuffer.GetAddressOf()))) {
 		ErrorMessage("Failed to create vertex buffer.");
 		return false;
 	}

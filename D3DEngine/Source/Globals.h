@@ -7,9 +7,9 @@
 namespace Globals {
 
 	static LPCTSTR appName = L"My Second Game Engine";
-
-	static int WINDOW_WIDTH = 1200;
-	static int WINDOW_HEIGHT = 800;
+	static LPCTSTR configWindowName = L"Config Window";
+	static int WINDOW_WIDTH = 1440;
+	static int WINDOW_HEIGHT = 900;
 	static int SIDEBAR_WIDTH = 400;
 	static int SIDEBAR_HEIGHT = WINDOW_HEIGHT;
 

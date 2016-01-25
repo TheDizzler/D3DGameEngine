@@ -1,7 +1,7 @@
 #include "GraphicsEngine.h"
 
-#include <tchar.h>
-#include <strsafe.h>
+
+
 
 
 GraphicsEngine::GraphicsEngine() {
@@ -18,13 +18,25 @@ GraphicsEngine::~GraphicsEngine() {
 	shutdown();
 }
 
-bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
+
+
+
+bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd, HWND cfgDlg) {
+
+	config = cfgDlg;
+
+	adapterCombo = GetDlgItem(config, IDC_COMBO_ADAPTERS);
+	selectedName = GetDlgItem(config, label_DeviceName);
+	selectedID = GetDlgItem(config, label_DeviceID);
+	selectedMem = GetDlgItem(config, label_DeviceMem);
+	selectedFeature = GetDlgItem(config, label_DeviceFeatureLevel);
 
 
 	if (!initD3D(hInstance, hwnd)) {
 		MessageBox(hwnd, L"Direct3D failed to initialize", L"ERROR", MB_OK);
 		return false;
 	}
+
 
 	/*if (!createConstantBuffer()) {
 		MessageBox(hwnd, L"Direct3D failed to create the constant buffer", L"ERROR", MB_OK);
@@ -47,7 +59,7 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 
 
 	//model = shaderManager->baseShader->models[0];
-	
+
 	//if (!mesh->loadMesh(device, "./assets/house/house.obj")) {
 	//if (!mesh->loadMesh(device, "./assets/Aphrodite/aphrodite.obj")) {
 	//if (!mesh->loadMesh(device, "./assets/castle/castle01.obj")) {
@@ -87,9 +99,22 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 	OnResize(resizeEventArgs);*/
 
 
-	testText();
+	fillConfigDialog();
 
 
+
+	return true;
+}
+
+
+bool GraphicsEngine::reInitializeAdapterGFX() {
+
+	initializeViewPort();
+	camera.setViewPort(viewport);
+	basicModel->changeDevice(device, deviceContext);
+	textFactory->changeDevice(device, deviceContext);
+
+	fillConfigDialog();
 
 	return true;
 }
@@ -105,17 +130,17 @@ bool GraphicsEngine::createConstantBuffer() {
 	constantBufferDesc.CPUAccessFlags = 0;
 	constantBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 
-	if (FAILED(device->CreateBuffer(&constantBufferDesc, NULL, &constantBuffers[ApplicationBuffer]))) {
+	if (reportError(device->CreateBuffer(&constantBufferDesc, NULL, &constantBuffers[ApplicationBuffer]))) {
 		OutputDebugStringA("Failed creating application constant buffer");
 		return false;
 	}
 
-	if (FAILED(device->CreateBuffer(&constantBufferDesc, NULL, &constantBuffers[PerFrameBuffer]))) {
+	if (reportError(device->CreateBuffer(&constantBufferDesc, NULL, &constantBuffers[PerFrameBuffer]))) {
 		OutputDebugStringA("Failed creating frame constant buffer");
 		return false;
 	}
 
-	if (FAILED(device->CreateBuffer(&constantBufferDesc, NULL, &constantBuffers[PerObjectBuffer]))) {
+	if (reportError(device->CreateBuffer(&constantBufferDesc, NULL, &constantBuffers[PerObjectBuffer]))) {
 		OutputDebugStringA("Failed creating object constant buffer");
 		return false;
 	}
@@ -149,15 +174,13 @@ void GraphicsEngine::initializeViewPort() {
 
 
 /** Displays all display drivers on screen */
-void GraphicsEngine::testText() {
+void GraphicsEngine::fillConfigDialog() {
+
 
 	textFactory = new TextFactory(device, deviceContext);
 
 	timer = textFactory->createText(L"FPS", 50, 50, 40);
-	TextLabel* displayInfoText = textFactory->createText(L"CardInfo", 50, 150, 20);
-	char cardName[128];
-	int memory;
-	getVideoCardInfo(cardName, memory);
+
 
 	wchar_t* feats;
 	switch (featureLevel) {
@@ -194,12 +217,30 @@ void GraphicsEngine::testText() {
 
 	}
 
-	wostringstream ws1;
-	ws1 << "cardName: " << cardName << " Memory: " << memory << "MBs" << " featureLevel: " << feats;
-	wstring str(ws1.str());
-	textFactory->editText(displayInfoText, str);
 
 
+
+	DXGI_ADAPTER_DESC adapterDesc;
+	// Get the adapter (video card) description.
+	if (reportError(selectedAdapter->GetDesc(&adapterDesc))) {
+		MessageBox(NULL, L"Error getting video card description.", L"ERROR", MB_OK);
+		//return false;
+	}
+
+	// Store the dedicated video card memory in megabytes.
+	videoCardMemory = (int) (adapterDesc.DedicatedVideoMemory / 1024 / 1024);
+	wostringstream vidmem;
+	vidmem << videoCardMemory << " MBs";
+
+	wostringstream id;
+	id << adapterDesc.DeviceId;
+
+	SetWindowText(selectedName, adapterDesc.Description);
+	SetWindowText(selectedMem, vidmem.str().c_str());
+	SetWindowText(selectedFeature, feats);
+	SetWindowText(selectedID, id.str().c_str());
+
+	wstring str;
 	int i = 0;
 	for (IDXGIAdapter* adapter : adapters) {
 
@@ -242,10 +283,16 @@ void GraphicsEngine::testText() {
 	textFactory->editText(label, str);
 }
 
+
+
+
+
 float rotation = 0.0f;
 
 void GraphicsEngine::update(double elapsedTime, int fps) {
 
+	/*if (haltEngine)
+		return;*/
 
 	wostringstream ws;
 	ws << "FPS: " << fps << "   Time: " << elapsedTime << "s";
@@ -276,6 +323,8 @@ void GraphicsEngine::update(double elapsedTime, int fps) {
 	//camera.translate(cameraPan, Camera::WorldSpace);
 
 	basicModel->update(elapsedTime, camera, deviceContext);
+
+	render();
 }
 
 
@@ -290,10 +339,10 @@ void GraphicsEngine::render() {
 
 	textFactory->draw();
 
-	
 
 
-	basicModel->render(deviceContext, camera, rasterState, renderTargetView, depthStencilState, depthStencilView);
+
+	//basicModel->render(deviceContext, camera, rasterState, renderTargetView, depthStencilState, depthStencilView);
 
 	//camera->render();
 

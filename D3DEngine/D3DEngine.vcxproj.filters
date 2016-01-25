@@ -65,9 +65,6 @@
     <ClCompile Include="Source\Texture.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Utils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\DiffuseLight.cpp">
       <Filter>Source Files\Graphics\Lights</Filter>
     </ClCompile>
@@ -121,9 +118,6 @@
     <ClInclude Include="Source\Texture.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\DiffuseLight.h">
       <Filter>Header Files\Graphics\Lights</Filter>
     </ClInclude>
@@ -157,6 +151,9 @@
     <ClInclude Include="Source\PrimitiveGeometry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="cube.txt">
@@ -180,5 +177,10 @@
     <None Include="Source\shaders\TexturedLitPixelShader.hlsl">
       <Filter>Resource Files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="D3DEngine.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

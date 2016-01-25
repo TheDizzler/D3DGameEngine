@@ -41,12 +41,42 @@ bool D3D::initD3D(HINSTANCE hInstance, HWND hwnd) {
 
 bool D3D::initializeSwapChain(HWND hwnd) {
 
-	unsigned int numerator, denominator;
 
-	if (!getDisplayAdapters(&numerator, &denominator)) {
+	if (!getDisplayAdapters()) {
 		MessageBox(NULL, L"Error gathering display info", L"ERROR", MB_OK);
 		return false;
 	}
+
+
+	initializeAdapter(hwnd, 0);
+
+
+}
+
+
+bool D3D::initializeAdapter(HWND hwnd, int adapterIndex) {
+
+	unsigned int numerator, denominator;
+
+	// Now go through all the display modes and find the one that matches the screen width and height.
+	// When a match is found store the numerator and denominator of the refresh rate for that monitor.
+	for (int i = 0; i < numModes; i++) {
+		/*stringstream wss;
+		wss << "width: " << displayModeList[i].Width << " height: " << displayModeList[i].Height;
+		ErrorMessage(wss.str());*/
+		if (displayModeList[i].Width == (unsigned int) Globals::WINDOW_WIDTH) {
+			if (displayModeList[i].Height == (unsigned int) Globals::WINDOW_HEIGHT) {
+				numerator = displayModeList[i].RefreshRate.Numerator;
+				denominator = displayModeList[i].RefreshRate.Denominator;
+				int num = displayModeList[i].RefreshRate.Numerator;
+				int den = displayModeList[i].RefreshRate.Denominator;
+				/*stringstream wss;
+				wss << "numerator: " << num << " denominator: " << den;
+				ErrorMessage(wss.str());*/
+			}
+		}
+	}
+
 
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
 	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
@@ -76,10 +106,10 @@ bool D3D::initializeSwapChain(HWND hwnd) {
 
 
 	UINT createDeviceFlags = 0;
-#if _DEBUG
-	//Utils::QuickMessage(L"Debuging");
-	createDeviceFlags = D3D11_CREATE_DEVICE_DEBUG;
-#endif
+	//#if _DEBUG
+	//	//QuickMessage(L"Debuging");
+	//	createDeviceFlags = D3D11_CREATE_DEVICE_DEBUG;
+	//#endif
 
 	// These are the feature levels that we will accept.
 	D3D_FEATURE_LEVEL featureLevels[] = {
@@ -92,10 +122,9 @@ bool D3D::initializeSwapChain(HWND hwnd) {
 		D3D_FEATURE_LEVEL_9_1
 	};
 
+	selectedAdapter = adapters[adapterIndex];
 
-
-
-	if (FAILED(D3D11CreateDeviceAndSwapChain(adapters[1], D3D_DRIVER_TYPE_UNKNOWN, NULL,
+	if (reportError(D3D11CreateDeviceAndSwapChain(selectedAdapter, D3D_DRIVER_TYPE_UNKNOWN, NULL,
 		createDeviceFlags, featureLevels, _countof(featureLevels), D3D11_SDK_VERSION,
 		&swapChainDesc, &swapChain, &device, &featureLevel, &deviceContext))) {
 		MessageBox(hwnd, L"Error creating Device and Swap Chain.", L"ERROR", MB_OK);
@@ -103,18 +132,63 @@ bool D3D::initializeSwapChain(HWND hwnd) {
 	}
 
 	ID3D11Texture2D* backBufferPtr;
-	if (FAILED(swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*) &backBufferPtr))) {
+	if (reportError(swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*) &backBufferPtr))) {
 		MessageBox(hwnd, L"Could not get pointer to back buffer.", L"ERROR", MB_OK);
 		return false;
 	}
 
-	if (FAILED(device->CreateRenderTargetView(backBufferPtr, NULL, &renderTargetView))) {
+	if (reportError(device->CreateRenderTargetView(backBufferPtr, NULL, &renderTargetView))) {
 		MessageBox(hwnd, L"Could not create render target view.", L"ERROR", MB_OK);
 		return false;
 	}
 	safeRelease(backBufferPtr);
 
 	getLatestShaderVersions();
+
+}
+
+
+bool D3D::changeAdapters(HWND hwnd) {
+
+	haltEngine = true;
+	int index = 0;
+	index = SendMessage(adapterCombo, CB_GETCURSEL, 0, 0);
+
+
+	swapChain->Release();
+	device->Release();
+	deviceContext->Release();
+	renderTargetView->Release();
+	depthStencilBuffer->Release();
+	depthStencilView->Release();
+	rasterState->Release();
+
+	if (!initializeAdapter(hwnd, index)) {
+		ErrorMessage("Could not re-initialize adapter");
+		return false;
+	}
+
+/*** INITIALIZE DEPTH STENCIL ***/
+	if (!initializeDepthStencil()) {
+		MessageBox(hwnd, L"Error initializing Depth Stencil.", L"ERROR", MB_OK);
+		return false;
+	}
+
+
+	/**** INITIALIZE RASTERIZER  ****/
+	if (!initializeRasterizer()) {
+		MessageBox(hwnd, L"Error initializing Rasterizer State.", L"ERROR", MB_OK);
+		return false;
+	}
+
+	if (!reInitializeAdapterGFX()) {
+		ErrorMessage("Could not re-initialize adapter engine");
+		return false;
+	}
+
+	haltEngine = false;
+
+	return true;
 }
 
 
@@ -136,7 +210,7 @@ bool D3D::initializeDepthStencil() {
 	depthBufferDesc.MiscFlags = 0;
 
 
-	if (FAILED(device->CreateTexture2D(&depthBufferDesc, NULL, &depthStencilBuffer))) {
+	if (reportError(device->CreateTexture2D(&depthBufferDesc, NULL, &depthStencilBuffer))) {
 		MessageBox(NULL, L"Could not create depth-stencil buffer.", L"ERROR", MB_OK);
 		return false;
 	}
@@ -148,12 +222,12 @@ bool D3D::initializeDepthStencil() {
 	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	depthStencilViewDesc.Texture2D.MipSlice = 0;
 
-	if (FAILED(device->CreateDepthStencilView(depthStencilBuffer, &depthStencilViewDesc, &depthStencilView))) {
+	if (reportError(device->CreateDepthStencilView(depthStencilBuffer, &depthStencilViewDesc, &depthStencilView))) {
 		MessageBox(NULL, L"Could not create depth-stencil view.", L"ERROR", MB_OK);
 		return false;
 	}*/
 
-	if (FAILED(device->CreateDepthStencilView(depthStencilBuffer, NULL, &depthStencilView))) {
+	if (reportError(device->CreateDepthStencilView(depthStencilBuffer, NULL, &depthStencilView))) {
 		MessageBox(NULL, L"Could not create depth-stencil view.", L"ERROR", MB_OK);
 		return false;
 	}
@@ -180,7 +254,7 @@ bool D3D::initializeDepthStencil() {
 	depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
 
-	if (FAILED(device->CreateDepthStencilState(&depthStencilDesc, &depthStencilState))) {
+	if (reportError(device->CreateDepthStencilState(&depthStencilDesc, &depthStencilState))) {
 		MessageBox(NULL, L"Could not create depth-stencil state.", L"ERROR", MB_OK);
 		return false;
 	}
@@ -220,7 +294,7 @@ bool D3D::initializeRasterizer() {
 
 
 
-	if (FAILED(device->CreateRasterizerState(&rasterDesc, &rasterState)))
+	if (reportError(device->CreateRasterizerState(&rasterDesc, &rasterState)))
 		return false;
 
 	deviceContext->RSSetState(rasterState);
@@ -234,24 +308,36 @@ bool D3D::initializeRasterizer() {
 
 
 
-bool D3D::getDisplayAdapters(UINT* numerator, UINT* denominator) {
+bool D3D::getDisplayAdapters() {
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* adapter;
 	IDXGIOutput* adapterOutput;
-	DXGI_ADAPTER_DESC adapterDesc;
-	unsigned long long stringLength;
+
 
 	// Create a DirectX graphics interface factory.
-	if (FAILED(CreateDXGIFactory(__uuidof(IDXGIFactory), (void**) &factory))) {
+	if (reportError(CreateDXGIFactory(__uuidof(IDXGIFactory), (void**) &factory))) {
 		MessageBox(NULL, L"Cannot create DXGI factory.", L"ERROR", MB_OK);
 		return false;
 	}
 
+
 	int i = 0;
 	while (factory->EnumAdapters(i++, &adapter) != DXGI_ERROR_NOT_FOUND) {
 		adapters.push_back(adapter);
+		DXGI_ADAPTER_DESC desc;
+		ZeroMemory(&desc, sizeof(DXGI_ADAPTER_DESC));
+		adapter->GetDesc(&desc);
+		SendMessage(adapterCombo, CB_ADDSTRING, 0, (LPARAM) desc.Description);
+
 	}
+
+	// resize the combobox to see all the adapters
+	RECT rect;
+	GetClientRect(adapterCombo, &rect);
+	SetWindowPos(adapterCombo, 0, 0, 0, rect.right, (i + 1) * rect.bottom, SWP_NOMOVE);
+	SendMessage(adapterCombo, CB_SETCURSEL, 0, 0); // sets the selected adapter to 0th
+
 	int size = i - 1;
 	i = 0;
 	adapter = adapters[0];
@@ -265,48 +351,23 @@ bool D3D::getDisplayAdapters(UINT* numerator, UINT* denominator) {
 		adapter = adapters[j];
 	}
 
-	adapter = adapters[1];
+	adapter = adapters[0]; // don't change this. Change it in initializeSwapChain()
 	adapterOutput = adapterOutputs[0];
 
 
 	// Find total modes that fit the DXGI_FORMAT_R8G8B8A8_UNORM display format
-	if (FAILED(adapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, NULL))) {
+	if (reportError(adapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, NULL))) {
 		MessageBox(NULL, L"Error enumerating display modes.", L"ERROR", MB_OK);
 		return false;
 	}
 
 	displayModeList = new DXGI_MODE_DESC[numModes];
-	if (FAILED(adapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, displayModeList))) {
+	if (reportError(adapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, displayModeList))) {
 		MessageBox(NULL, L"Error get display mode list.", L"ERROR", MB_OK);
 		return false;
 	}
 
-	// Now go through all the display modes and find the one that matches the screen width and height.
-	// When a match is found store the numerator and denominator of the refresh rate for that monitor.
-	for (int i = 0; i < numModes; i++) {
-		if (displayModeList[i].Width == (unsigned int) Globals::WINDOW_WIDTH) {
-			if (displayModeList[i].Height == (unsigned int) Globals::WINDOW_HEIGHT) {
-				*numerator = displayModeList[i].RefreshRate.Numerator;
-				*denominator = displayModeList[i].RefreshRate.Denominator;
 
-			}
-		}
-	}
-
-	// Get the adapter (video card) description.
-	if (FAILED(adapter->GetDesc(&adapterDesc))) {
-		MessageBox(NULL, L"Error getting video card description.", L"ERROR", MB_OK);
-		return false;
-	}
-
-	// Store the dedicated video card memory in megabytes.
-	videoCardMemory = (int) (adapterDesc.DedicatedVideoMemory / 1024 / 1024);
-
-	// Convert the name of the video card to a character array and store it.
-	if (wcstombs_s(&stringLength, videoCardDescription, 128, adapterDesc.Description, 128) != 0) {
-		MessageBox(NULL, L"Error converting name of video card.", L"ERROR", MB_OK);
-		return false;
-	}
 
 	factory->Release();
 
@@ -314,10 +375,6 @@ bool D3D::getDisplayAdapters(UINT* numerator, UINT* denominator) {
 }
 
 
-void D3D::getVideoCardInfo(char* cardName, int& memory) {
-	strcpy_s(cardName, 128, videoCardDescription);
-	memory = videoCardMemory;
-}
 
 
 void D3D::getLatestShaderVersions() {

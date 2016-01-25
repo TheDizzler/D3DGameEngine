@@ -14,32 +14,32 @@ bool Input::initDirectInput(HINSTANCE hInstance, HWND hw) {
 
 	hwnd = hw;
 
-	if (FAILED(DirectInput8Create(hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8,
+	if (reportError(DirectInput8Create(hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8,
 		(void**) &directInput, NULL)))
 
 		return false;
 
-	if (FAILED(directInput->CreateDevice(GUID_SysKeyboard, &inputKB, NULL)))
+	if (reportError(directInput->CreateDevice(GUID_SysKeyboard, &inputKB, NULL)))
 
 		return false;
 
-	if (FAILED(directInput->CreateDevice(GUID_SysMouse, &inputMouse, NULL)))
+	if (reportError(directInput->CreateDevice(GUID_SysMouse, &inputMouse, NULL)))
 
 		return false;
 
-	if (FAILED(inputKB->SetDataFormat(&c_dfDIKeyboard)))
+	if (reportError(inputKB->SetDataFormat(&c_dfDIKeyboard)))
 
 		return false;
 
-	if (FAILED(inputKB->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE)))
+	if (reportError(inputKB->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE)))
 
 		return false;
 
-	if (FAILED(inputMouse->SetDataFormat(&c_dfDIMouse)))
+	if (reportError(inputMouse->SetDataFormat(&c_dfDIMouse)))
 
 		return false;
 
-	if (FAILED(inputMouse->SetCooperativeLevel(hwnd, DISCL_EXCLUSIVE | DISCL_NOWINKEY | DISCL_FOREGROUND)))
+	if (reportError(inputMouse->SetCooperativeLevel(hwnd, DISCL_EXCLUSIVE | DISCL_NOWINKEY | DISCL_FOREGROUND)))
 
 		return false;
 

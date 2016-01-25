@@ -47,7 +47,7 @@ bool BaseShader::initializeShader(ID3D11Device* device, HWND hwnd,
 #endif
 
 	// Compile the vertex shader code.
-	if (FAILED(D3DCompileFromFile(shaderDesc->vsFile, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+	if (reportError(D3DCompileFromFile(shaderDesc->vsFile, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
 		shaderDesc->vsEP, Globals::VERTEX_SHADER_VERSION,
 		flags, 0, &vertexShaderBlob, &errorBlob))) {
 		if (errorBlob) {
@@ -59,7 +59,7 @@ bool BaseShader::initializeShader(ID3D11Device* device, HWND hwnd,
 		return false;
 	}
 
-	if (FAILED(D3DCompileFromFile(shaderDesc->psFile, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+	if (reportError(D3DCompileFromFile(shaderDesc->psFile, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
 		shaderDesc->psEP, Globals::PIXEL_SHADER_VERSION,
 		flags, 0, &pixelShaderBlob, &errorBlob))) {
 		if (errorBlob) {
@@ -72,21 +72,21 @@ bool BaseShader::initializeShader(ID3D11Device* device, HWND hwnd,
 	}
 
 	// Create the vertex shader from the buffer.
-	if (FAILED(device->CreateVertexShader(vertexShaderBlob->GetBufferPointer(),
+	if (reportError(device->CreateVertexShader(vertexShaderBlob->GetBufferPointer(),
 		vertexShaderBlob->GetBufferSize(), NULL, &vertexShader))) {
 		MessageBox(NULL, L"Error creating Vertex Shader", L"ERROR", MB_OK);
 		return false;
 	}
 
 	// Create the pixel shader from the buffer.
-	if (FAILED(device->CreatePixelShader(pixelShaderBlob->GetBufferPointer(),
+	if (reportError(device->CreatePixelShader(pixelShaderBlob->GetBufferPointer(),
 		pixelShaderBlob->GetBufferSize(), NULL, &pixelShader))) {
 		MessageBox(NULL, L"Error creating Pixel Shader", L"ERROR", MB_OK);
 		return false;
 	}
 
 
-	if (FAILED(initInputLayout(device, vertexShaderBlob))) {
+	if (reportError(initInputLayout(device, vertexShaderBlob))) {
 		MessageBox(NULL, L"Error creating Input Layout Buffer", L"ERROR", MB_OK);
 		return false;
 	}
@@ -95,17 +95,17 @@ bool BaseShader::initializeShader(ID3D11Device* device, HWND hwnd,
 	pixelShaderBlob->Release();
 
 
-	if (FAILED(initMatrixBuffer(device))) {
+	if (reportError(initMatrixBuffer(device))) {
 		MessageBox(NULL, L"Error creating Constant (Matrix) Buffer", L"ERROR", MB_OK);
 		return false;
 	}
 
-	if (FAILED(initSamplerState(device))) {
+	if (reportError(initSamplerState(device))) {
 		MessageBox(NULL, L"Error creating Sampler State", L"ERROR", MB_OK);
 		return false;
 	}
 
-	if (FAILED(initLightBuffer(device))) {
+	if (reportError(initLightBuffer(device))) {
 		return false;
 	}
 
@@ -174,11 +174,8 @@ HRESULT BaseShader::initInputLayout(ID3D11Device* device, ID3D10Blob* vertexShad
 
 	unsigned int numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
-	if (FAILED(device->CreateInputLayout(polygonLayout, numElements,
-		vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize(), &layout))) {
-		MessageBox(NULL, L"Error creating Input Layout", L"ERROR", MB_OK);
-		return false;
-	}
+	return device->CreateInputLayout(polygonLayout, numElements,
+		vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize(), &layout);
 
 }
 
@@ -196,7 +193,7 @@ HRESULT BaseShader::initLightBuffer(ID3D11Device* device) {
 	lightBufferDesc.StructureByteStride = 0;*/
 
 	//return device->CreateBuffer(&lightBufferDesc, NULL, &lightBuffer);
-	return NULL;
+	return E_NOTIMPL;
 }
 
 
@@ -211,7 +208,7 @@ HRESULT BaseShader::initMatrixBuffer(ID3D11Device* device) {
 	matrixBufferDesc.StructureByteStride = 0;*/
 
 	//return device->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
-	return NULL;
+	return E_NOTIMPL;
 }
 
 

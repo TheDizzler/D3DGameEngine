@@ -8,6 +8,8 @@
 #include <comdef.h>
 #include <stdio.h>
 #include <wchar.h>
+#include <tchar.h>
+#include <strsafe.h>
 
 #include <fstream>
 #include <vector>
@@ -36,6 +38,16 @@ enum ConstantBuffer {
 	NumConstantBuffers
 };
 
+
+inline LPCWSTR convertCharToLPCW(const char* text) {
+
+	std::wostringstream ws2;
+	ws2 << text;
+	std::wstring name(ws2.str());
+	return name.c_str();
+}
+
+/* Convenience method to convert a string to a windows message box. */
 inline void ErrorMessage(std::string msg) {
 
 	std::wstring wstr;
@@ -45,13 +57,30 @@ inline void ErrorMessage(std::string msg) {
 	
 }
 
+inline bool reportError(HRESULT hr) {
 
-inline void QuickMessage(wchar_t* msg) {
+	if (FAILED(hr)) {
+		_com_error err(hr);
+		MessageBox(NULL, err.ErrorMessage(), TEXT("This is SRS Error"), MB_OK);
+		return true;
+	}
+
+	return false;
+}
+
+inline void QuickMessage(const wchar_t* msg)  {
 
 	MessageBox(NULL, msg, L"This is an Quick Msg", MB_OK);
 }
 
-// Safely release a COM object.
+inline void QuickMessageInt(const int number) {
+
+	std::wostringstream wos;
+	wos << number;
+	QuickMessage(wos.str().c_str());
+}
+
+// "Safely" release a COM object.
 template<typename T>
 inline void safeRelease(T& ptr) {
 	if (ptr != NULL) {

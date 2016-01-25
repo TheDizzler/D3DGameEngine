@@ -76,6 +76,8 @@ public:
 	BasicModel(ID3D11Device * device);
 	~BasicModel();
 
+	void changeDevice(ID3D11Device * device, ID3D11DeviceContext* deviceContext);
+
 	void update(float elapsedTime, Camera camera, ID3D11DeviceContext* deviceContext);
 
 	void render(ID3D11DeviceContext* deviceContext, Camera camera,
@@ -95,6 +97,7 @@ private:
 	// Material properties defined in the pixel shader
 	Microsoft::WRL::ComPtr<ID3D11Buffer> materialPropertiesConstantBuffer;
 
+	const WCHAR * filename;
 
 	// Vertices for a unit plane.
 	VertexPosNormTex planeVerts[4] = {

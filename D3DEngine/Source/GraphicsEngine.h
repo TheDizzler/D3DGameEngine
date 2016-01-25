@@ -23,7 +23,9 @@ public:
 	GraphicsEngine();
 	~GraphicsEngine();
 
-	bool initGFXEngine(HINSTANCE hInstance, HWND hwnd);
+	bool initGFXEngine(HINSTANCE hInstance, HWND hwnd, HWND config);
+	
+
 	void shutdown();
 
 	void render();
@@ -34,6 +36,8 @@ public:
 	void initializeViewPort();
 
 private:
+
+	HWND selectedName, selectedID, selectedMem, selectedFeature;
 
 	Camera camera;
 	DiffuseLight* light = 0;
@@ -59,6 +63,8 @@ private:
 
 	bool createConstantBuffer();
 
-	void testText();
+	void fillConfigDialog();
+
+	bool virtual reInitializeAdapterGFX();
 
 };
