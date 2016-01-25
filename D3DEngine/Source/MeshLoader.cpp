@@ -151,7 +151,7 @@ bool MeshLoader::initFromScene(ID3D11Device* device, const aiScene* scene, Model
 		// normals and tangents were created.. use those
 		for (unsigned int x = 0; x < mesh->mNumVertices; ++x) {
 
-			Model::Vertex v;
+			Model::VertexPosNormTex v;
 			v.position = XMFLOAT3(mesh->mVertices[x].x,
 				mesh->mVertices[x].y, mesh->mVertices[x].z);
 
@@ -161,8 +161,8 @@ bool MeshLoader::initFromScene(ID3D11Device* device, const aiScene* scene, Model
 			v.normal = XMFLOAT3(mesh->mNormals[x].x,
 				mesh->mNormals[x].y, mesh->mNormals[x].z);
 
-			v.tangent = XMFLOAT3(mesh->mTangents[x].x,
-				mesh->mTangents[x].y, mesh->mTangents[x].z);
+			/*v.tangent = XMFLOAT3(mesh->mTangents[x].x,
+				mesh->mTangents[x].y, mesh->mTangents[x].z);*/
 			
 			//data.vertices[x] = v;
 			data.vertices.push_back(v);
@@ -324,10 +324,10 @@ void MeshLoader::getMaterialProperties(ID3D11Device* device, const aiMaterial* m
 bool MeshLoader::initializeBuffers(ID3D11Device* device, Model::MeshData* meshData) {
 
 
-	Model::Vertex* tempVerts;
+	Model::VertexPosNormTex* tempVerts;
 	unsigned long* tempIndices;
 
-	tempVerts = new Model::Vertex[meshData->numVerts];
+	tempVerts = new Model::VertexPosNormTex[meshData->numVerts];
 	tempIndices = new unsigned long[meshData->numIndices];
 
 
@@ -340,7 +340,7 @@ bool MeshLoader::initializeBuffers(ID3D11Device* device, Model::MeshData* meshDa
 	D3D11_BUFFER_DESC vertexBufferDesc;
 	ZeroMemory(&vertexBufferDesc, sizeof(D3D11_BUFFER_DESC));
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;	// D3D11_USAGE_DYNAMIC allows buffer to be updated
-	vertexBufferDesc.ByteWidth = sizeof(Model::Vertex) * meshData->numVerts;
+	vertexBufferDesc.ByteWidth = sizeof(Model::VertexPosNormTex) * meshData->numVerts;
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vertexBufferDesc.CPUAccessFlags = 0;
 	vertexBufferDesc.MiscFlags = 0;
@@ -387,63 +387,6 @@ bool MeshLoader::initializeBuffers(ID3D11Device* device, Model::MeshData* meshDa
 }
 
 
-//bool MeshLoader::loadMesh(ID3D11Device* device, const string filename) {
-	//
-	//	Assimp::Importer assimp;
-	//	const aiScene* scene = NULL;
-	//
-	//
-	//	scene = assimp.ReadFile(filename,
-	//		aiProcess_Triangulate // translate models made from non triangle polygons into triangle based meshes
-	//		| aiProcess_GenSmoothNormals // generates vertex normals if model does not already contain them
-	//		| aiProcess_FlipUVs // flips texture coordinates along the Y axis
-	//		| aiProcess_CalcTangentSpace
-	//		| aiProcess_PreTransformVertices
-	//		| aiProcess_FixInfacingNormals
-	//		| aiProcess_FindInvalidData
-	//		| aiProcess_ValidateDataStructure
-	//		//| aiProcess_ConvertToLeftHanded
-	//		//| aiProcess_MakeLeftHanded
-	//		//| aiProcess_JoinIdenticalVertices
-	//		//| aiProcess_SortByPType
-	//		//| aiProcessPreset_TargetRealtime_MaxQuality
-	//		//| aiProcess_LimitBoneWeights
-	//		//| aiProcess_OptimizeMeshes
-	//		);
-	//
-	//
-	//	if (!scene) {
-	//		char* error = (char*) assimp.GetErrorString();
-	//		wchar_t wtext[256];
-	//		mbstowcs(wtext, error, strlen(error) + 1);
-	//		MessageBox(NULL, wtext, L"Assimp Error", MB_OK);
-	//		return false;
-	//	}
-	//
-	//	size_t loc = filename.find_last_of('/');
-	//
-	//
-	//	modelData = new ModelData;
-	//	modelData->modelName = filename.substr(loc + 1);
-	//	modelData->filepath = filename.substr(0, loc + 1);
-	//	modelData->numMeshes = scene->mNumMeshes;
-	//	modelData->meshData.resize(modelData->numMeshes);
-	//
-	//
-	//	if (!initFromScene(device, scene)) {
-	//		delete(modelData);
-	//		return false;
-	//	}
-	//
-	//
-	//	//if (currentvertex == 0) {// this could happen, if so GET OUTOF HERE
-	//	//	OUTPUT_DEBUG_MSG("Problem loading the mesh, there were no vertices loaded. Failed to load the mesh");
-	//	//	return false;
-	//	//}
-	//
-	//
-	//	return true;
-	//}
 
 //bool MeshLoader::initializeStaticBuffers(ID3D11Device* device) {
 //

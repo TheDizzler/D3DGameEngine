@@ -64,13 +64,13 @@ float4 doDiffuse(Light light, float3 L, float3 N) {
 float4 doSpecular(Light light, float3 V, float3 L, float3 N) {
 	// Phong lighting
 	float3 r = normalize(reflect(-L, N));
-	float rDotV = max(0, dot(R, V));
+	float rDotV = max(0, dot(r, V));
 
 	// Blinn-Phong lighting
 	//float3 h = normalize(L + V);
-	//float nDotH = max(0, dot(N, H));
+	//float nDotH = max(0, dot(N, h));
 
-	return light.color * pow(rDotV, Material.specularPower);
+	return light.color * pow(rDotV, material.specularPower);
 }
 
 
@@ -139,7 +139,7 @@ LightingResult doSpotLight(Light light, float3 V, float4 P, float3 N) {
 
 LightingResult computeLighting(float4 P, float3 N) {
 
-	float3 V = normalize(EyePosition - P).xyz;
+	float3 V = normalize(eyePosition - P).xyz;
 
 	LightingResult totalResult = {{0, 0, 0, 0},{0, 0, 0, 0}};
 
@@ -147,17 +147,17 @@ LightingResult computeLighting(float4 P, float3 N) {
 	for (int i = 0; i < MAX_LIGHTS; ++i) {
 		LightingResult result = {{0, 0, 0, 0},{0, 0, 0, 0}};
 
-		if (!Lights[i].enabled) continue;
+		if (!lights[i].enabled) continue;
 
-		switch (Lights[i].lightType) {
+		switch (lights[i].lightType) {
 			case DIRECTIONAL_LIGHT:
-				result = doDirectionalLight(Lights[i], V, P, N);
+				result = doDirectionalLight(lights[i], V, P, N);
 				break;
 			case POINT_LIGHT:
-				result = doPointLight(Lights[i], V, P, N);
+				result = doPointLight(lights[i], V, P, N);
 				break;
 			case SPOT_LIGHT:
-				result = doSpotLight(Lights[i], V, P, N);
+				result = doSpotLight(lights[i], V, P, N);
 				break;
 		}
 		totalResult.diffuse += result.diffuse;
@@ -183,14 +183,14 @@ float4 TexturedLitPixelShader(PixelShaderInput IN) : SV_TARGET{
 
 	LightingResult lit = computeLighting(IN.positionWS, normalize(IN.normalWS));
 
-	float4 emissive = Material.emissive;
-	float4 ambient = Material.ambient * globalAmbient;
-	float4 diffuse = Material.diffuse * lit.diffuse;
-	float4 specular = Material.specular * lit.specular;
+	float4 emissive = material.emissive;
+	float4 ambient = material.ambient * globalAmbient;
+	float4 diffuse = material.diffuse * lit.diffuse;
+	float4 specular = material.specular * lit.specular;
 
 	float4 texColor = {1, 1, 1, 1};
 
-	if (Material.hasTexture) {
+	if (material.hasTexture) {
 		texColor = shaderTexture.Sample(samplerState, IN.texCoord);
 	}
 

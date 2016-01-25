@@ -27,7 +27,7 @@ void BaseShader::render(ID3D11DeviceContext* deviceContext, ID3D11Buffer* consta
 
 	// for each model that uses this shader
 	for (Model* model : models) {
-		deviceContext->PSSetSamplers(0, 1, &sampleState); // is this per texture?
+		deviceContext->PSSetSamplers(0, 1, &samplerState); // is this per texture?
 		model->render(deviceContext, constantBuffers);
 	}
 }
@@ -91,8 +91,8 @@ bool BaseShader::initializeShader(ID3D11Device* device, HWND hwnd,
 		return false;
 	}
 
-	safeRelease(vertexShaderBlob);
-	safeRelease(pixelShaderBlob);
+	vertexShaderBlob->Release();
+	pixelShaderBlob->Release();
 
 
 	if (FAILED(initMatrixBuffer(device))) {
@@ -101,7 +101,7 @@ bool BaseShader::initializeShader(ID3D11Device* device, HWND hwnd,
 	}
 
 	if (FAILED(initSamplerState(device))) {
-		MessageBox(NULL, L"Error creating Sampler Shader", L"ERROR", MB_OK);
+		MessageBox(NULL, L"Error creating Sampler State", L"ERROR", MB_OK);
 		return false;
 	}
 
@@ -109,9 +109,9 @@ bool BaseShader::initializeShader(ID3D11Device* device, HWND hwnd,
 		return false;
 	}
 
+
 	return true;
 }
-
 
 
 HRESULT BaseShader::initInputLayout(ID3D11Device* device, ID3D10Blob* vertexShaderBlob) {
@@ -146,13 +146,13 @@ HRESULT BaseShader::initInputLayout(ID3D11Device* device, ID3D10Blob* vertexShad
 	polygonLayout[i].InstanceDataStepRate = 0;
 
 	// Tangent layout ... how useful is this?
-	polygonLayout[++i].SemanticName = "TANGENT";
+	/*polygonLayout[++i].SemanticName = "TANGENT";
 	polygonLayout[i].SemanticIndex = 0;
 	polygonLayout[i].Format = DXGI_FORMAT_R32G32B32_FLOAT;
 	polygonLayout[i].InputSlot = 0;
 	polygonLayout[i].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	polygonLayout[i].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	polygonLayout[i].InstanceDataStepRate = 0;
+	polygonLayout[i].InstanceDataStepRate = 0;*/
 
 
 	/*polygonLayout[++i].SemanticName = "WORLDMATRIX";
@@ -233,7 +233,7 @@ HRESULT BaseShader::initSamplerState(ID3D11Device* device) {
 	samplerDesc.MinLOD = 0;
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	return device->CreateSamplerState(&samplerDesc, &sampleState);
+	return device->CreateSamplerState(&samplerDesc, &samplerState);
 }
 
 
@@ -268,8 +268,8 @@ void BaseShader::release() {
 
 	if (matrixBuffer)
 		matrixBuffer->Release();
-	if (sampleState)
-		sampleState->Release();
+	if (samplerState)
+		samplerState->Release();
 	if (layout)
 		layout->Release();
 	if (pixelShader)

@@ -25,7 +25,7 @@ namespace Globals {
 	static float SCREEN_DEPTH = 1000.0f;
 
 	
-	const std::string ASSETS_DIR = "..\\Assets\\";
+	static const WCHAR* ASSETS_DIR = L"../../D3DEngine/Assets/";
 
 
 

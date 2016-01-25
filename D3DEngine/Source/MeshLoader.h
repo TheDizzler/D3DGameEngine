@@ -20,7 +20,6 @@ public:
 	void setShader(BaseShader* shader);
 	TRESULTS loadMesh(ID3D11Device* device, const string filename);
 
-	//bool loadMesh(ID3D11Device* device, const string filename);
 	//void render(ID3D11DeviceContext* deviceContext);
 	//void renderStatic(ID3D11DeviceContext* deviceContext);
 
@@ -37,12 +36,5 @@ private:
 	bool initializeBuffers(ID3D11Device* device, Model::MeshData* meshData);
 
 
-	//bool initializeBuffers(ID3D11Device* device, MeshData* meshData);
-	//bool initializeStaticBuffers(ID3D11Device* device);
 
-	
-
-
-
-	//void release();
 };

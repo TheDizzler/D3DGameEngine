@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Utils.h"
 
 #include "DDSTextureLoader.h"
 #include "WICTextureLoader.h"
 
+using namespace std;
 using namespace DirectX;
 
 

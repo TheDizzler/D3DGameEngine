@@ -89,6 +89,15 @@
     <ClCompile Include="Source\shaders\BaseShader.cpp">
       <Filter>Source Files\Graphics\Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="Source\BasicModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\shaders\SimpleShader.cpp">
+      <Filter>Source Files\Graphics\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\PrimitiveGeometry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Globals.h">
@@ -135,6 +144,18 @@
     </ClInclude>
     <ClInclude Include="Source\shaders\BaseShader.h">
       <Filter>Header Files\Graphics\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\BasicModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\shaders\SimpleShader.h">
+      <Filter>Header Files\Graphics\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\stuff.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\PrimitiveGeometry.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

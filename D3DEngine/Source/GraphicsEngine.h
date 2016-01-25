@@ -6,7 +6,7 @@
 #include "TextFactory.h"
 #include "Camera.h"
 //#include "Model.h"
-
+#include "BasicModel.h"
 
 /** Container for all graphical properties. For now it is the whole engine, including gameplay
 	elements but this will eventually be changed. */
@@ -35,9 +35,10 @@ public:
 
 private:
 
-	Camera* camera = 0;
+	Camera camera;
 	DiffuseLight* light = 0;
 	Model* model = 0;
+	BasicModel* basicModel = 0;
 
 	MeshLoader* meshLoader = 0;
 

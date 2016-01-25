@@ -10,7 +10,7 @@ ShaderManager::~ShaderManager() {
 bool ShaderManager::initializeManager(ID3D11Device* device, HWND hwnd) {
 
 	
-	ShaderDesc* shaderDesc = new ShaderDesc(IMP_VERTEX_SHADER, "ImpVertexShader",
+	/*ShaderDesc* shaderDesc = new ShaderDesc(IMP_VERTEX_SHADER, "ImpVertexShader",
 		IMP_PIXEL_SHADER, "ImpPixelShader");
 	
 
@@ -21,7 +21,7 @@ bool ShaderManager::initializeManager(ID3D11Device* device, HWND hwnd) {
 		return false;
 	}
 
-	shaders.push_back(baseShader);
+	shaders.push_back(baseShader);*/
 
 	
 	/*lightShader = new LightShader();
@@ -46,7 +46,7 @@ bool ShaderManager::initializeManager(ID3D11Device* device, HWND hwnd) {
 	
 
 
-	delete shaderDesc;
+	//delete shaderDesc;
 
 	return true;
 }

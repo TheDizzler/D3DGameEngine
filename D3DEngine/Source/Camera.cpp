@@ -3,102 +3,217 @@
 
 Camera::Camera() {
 
-	position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	//position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
-	rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	//rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
 	// Setup the vector that points upwards.
-	up.x = 0.0f;
-	up.y = 1.0f;
-	up.z = 0.0f;
+	//up.x = 0.0f;
+	//up.y = 1.0f;
+	//up.z = 0.0f;
 
-	// Setup where the camera is looking by default.
-	lookAt.x = 0.0f;
-	lookAt.y = 0.0f;
-	lookAt.z = 1.0f;
+	//// Setup where the camera is looking by default.
+	//lookAt.x = 0.0f;
+	//lookAt.y = 0.0f;
+	//lookAt.z = 1.0f;
+
+	alignedData = (AlignedData*) _aligned_malloc(sizeof(AlignedData), 16);
+	if (alignedData == NULL) {
+		MessageBoxA(nullptr, "The data is NULL?!", "Error", MB_OK | MB_ICONERROR);
+	}
+	alignedData->position = XMVectorZero();
+	alignedData->rotation = XMQuaternionIdentity();
 }
 
 Camera::~Camera() {
 }
 
 
+//void Camera::render() {
+//
+//
+//}
+
+
+void Camera::setViewPort(D3D11_VIEWPORT vwprt) {
+
+	viewport = vwprt;
+}
+
+D3D11_VIEWPORT Camera::getViewport() {
+	return viewport;
+}
+
+
 /* Set the position of the camera in the world. */
-void Camera::setPosition(float positionX, float positionY, float positionZ) {
+//void Camera::setPosition(float positionX, float positionY, float positionZ) {
+//
+//	position = XMFLOAT3(positionX, positionY, positionZ);
+//}
 
-	position = XMFLOAT3(positionX, positionY, positionZ);
+/* Set the position of the camera in the world. */
+void XM_CALLCONV Camera::setPosition(FXMVECTOR position) {
+
+	alignedData->position = position;
+	viewDirty = true;
+
 }
 
 
-void Camera::setRotation(float x, float y, float z) {
+void XM_CALLCONV Camera::translate(FXMVECTOR translation, Space space) {
 
-	rotation = XMFLOAT3(x, y, z);
+	switch (space) {
+		case LocalSpace:
+			alignedData->position += XMVector3Rotate(translation, alignedData->rotation);
+			break;
+		case WorldSpace:
+			alignedData->position += translation;
+			break;
+	}
+
+	alignedData->position = XMVectorSetW(alignedData->position, 1.0f);
+	viewDirty = true;
+	inverseViewDirty = true;
+
+}
+
+XMVECTOR Camera::getPosition() const {
+	return alignedData->position;
 }
 
 
-void Camera::setLookAt(float positionX, float positionY, float positionZ) {
+void Camera::setRotation(XMVECTOR rotation) {
 
-	lookAt = XMFLOAT3(positionX, positionY, positionZ);
-}
-
-XMFLOAT3 Camera::getPosition() {
-	return position;
-}
-
-XMFLOAT3 Camera::getRotation() {
-	return rotation;
-}
-
-void Camera::render() {
-
-	
-	XMVECTOR upVector, positionVector, lookAtVector;
-	float yaw, pitch, roll;
-	XMMATRIX rotationMatrix;
-
-
-	
-
-	// Load it into a XMVECTOR structure.
-	upVector = XMLoadFloat3(&up);
-
-	
-
-	// Load it into a XMVECTOR structure.
-	positionVector = XMLoadFloat3(&position);
-
-
-	// Load it into a XMVECTOR structure.
-	lookAtVector = XMLoadFloat3(&lookAt);
-
-	// Set the yaw (Y axis), pitch (X axis), and roll (Z axis) rotations in radians.
-	pitch = rotation.x * 0.0174532925f;
-	yaw = rotation.y * 0.0174532925f;
-	roll = rotation.z * 0.0174532925f;
-
-	// Create the rotation matrix from the yaw, pitch, and roll values.
-	rotationMatrix = XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
-
-	// Transform the lookAt and up vector by the rotation matrix so the view is correctly rotated at the origin.
-	lookAtVector = XMVector3TransformCoord(lookAtVector, rotationMatrix);
-	upVector = XMVector3TransformCoord(upVector, rotationMatrix);
-
-	// Translate the rotated camera position to the location of the viewer.
-	lookAtVector = XMVectorAdd(positionVector, lookAtVector);
-
-	// Finally create the view matrix from the three updated vectors.
-	viewMatrix = XMMatrixLookAtLH(positionVector, lookAtVector, upVector);
+	alignedData->rotation = rotation;
 }
 
 
-void Camera::setViewMatrix(XMMATRIX &view) {
+void Camera::rotate(FXMVECTOR quaternion) {
 
-	view = viewMatrix;
+	alignedData->rotation = XMQuaternionMultiply(alignedData->rotation, quaternion);
+
+	viewDirty = true;
+	inverseViewDirty = true;
+}
+
+XMVECTOR Camera::getRotation() const {
+	return alignedData->rotation;
 }
 
 
-XMMATRIX Camera::getViewMatrix() {
 
-	return viewMatrix;
+
+
+void XM_CALLCONV Camera::setLookAt(FXMVECTOR eye, FXMVECTOR target, FXMVECTOR up) {
+
+	alignedData->viewMatrix = XMMatrixLookAtLH(eye, target, up);
+
+	alignedData->position = eye;
+	alignedData->rotation =
+		XMQuaternionRotationMatrix(XMMatrixTranspose(alignedData->viewMatrix));
+
+	inverseViewDirty = true;
+	viewDirty = false;
 }
 
 
+//XMFLOAT3 Camera::getPosition() {
+//	return position;
+//}
+
+
+
+
+
+//void Camera::setViewMatrix(XMMATRIX &view) {
+//
+//	view = viewMatrix;
+//}
+
+
+XMMATRIX Camera::getViewMatrix() const {
+
+	if (viewDirty)
+		updateViewMatrix();
+	return alignedData->viewMatrix;
+}
+
+XMMATRIX Camera::getInverseViewMatrix() const {
+
+	if (inverseViewDirty) {
+		alignedData->inverseViewMatrix = XMMatrixInverse(NULL, alignedData->viewMatrix);
+		inverseViewDirty = false;
+	}
+
+	return alignedData->inverseViewMatrix;
+}
+
+void Camera::setProjection(float fovy, float aspect, float zNear, float zFar) {
+
+	vFoV = fovy;
+	aspectRatio = aspect;
+	zNear = zNear;
+	zFar = zFar;
+
+	projectionDirty = true;
+	inverseProjectionDirty = true;
+}
+
+XMMATRIX Camera::getInverseProjectionMatrix() const {
+
+	if (inverseProjectionDirty)
+		updateInverseProjectionMatrix();
+
+	return alignedData->inverseProjectionMatrix;
+}
+
+XMMATRIX Camera::getProjectionMatrix() const {
+
+	if (projectionDirty)
+		updateProjectionMatrix();
+
+	return alignedData->projectionMatrix;
+}
+
+
+void Camera::updateViewMatrix() const {
+
+	XMMATRIX rotationMatrix = XMMatrixTranspose(XMMatrixRotationQuaternion(alignedData->rotation));
+	XMMATRIX translationMatrix = XMMatrixTranslationFromVector(-(alignedData->position));
+
+	alignedData->viewMatrix = translationMatrix * rotationMatrix;
+
+	inverseViewDirty = true;
+	viewDirty = false;
+}
+
+
+void Camera::updateInverseViewMatrix() const {
+
+	if (viewDirty)
+		updateViewMatrix();
+
+	alignedData->inverseViewMatrix = XMMatrixInverse(NULL, alignedData->viewMatrix);
+	inverseViewDirty = false;
+}
+
+
+void Camera::updateProjectionMatrix() const {
+
+	alignedData->projectionMatrix
+		= XMMatrixPerspectiveFovLH(XMConvertToRadians(vFoV), aspectRatio, zNear, zFar);
+
+	projectionDirty = false;
+	inverseProjectionDirty = true;
+}
+
+
+void Camera::updateInverseProjectionMatrix() const {
+
+	if (projectionDirty) {
+		updateProjectionMatrix();
+	}
+
+	alignedData->inverseProjectionMatrix = XMMatrixInverse(NULL, alignedData->projectionMatrix);
+	inverseProjectionDirty = false;
+}

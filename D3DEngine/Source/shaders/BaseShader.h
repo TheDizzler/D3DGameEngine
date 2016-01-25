@@ -4,7 +4,6 @@
 #include "Globals.h"
 #include "Model3D.h"
 
-//using namespace std;
 
 /* Description of shader to create. My attempt at a Microsoft code style :P. */
 typedef struct ShaderDesc {
@@ -24,25 +23,28 @@ typedef struct ShaderDesc {
 	that material). */
 class BaseShader {
 public:
-
+	// A structure to hold the data for a per-object constant buffer
+	// defined in the vertex shader.
+	struct PerFrameConstantBufferData {
+		XMMATRIX viewProjectionMatrix;
+	};
 
 	BaseShader();
 	~BaseShader();
 
-	bool initializeShader(ID3D11Device* device, HWND hwnd,
+	virtual bool initializeShader(ID3D11Device* device, HWND hwnd,
 		const ShaderDesc* shaderDesc);
 
-	void loadModel(Model* model);
+	virtual void loadModel(Model* model);
 
-	void render(ID3D11DeviceContext* deviceContext, ID3D11Buffer* constantBuffers[]);
+	virtual void render(ID3D11DeviceContext* deviceContext, ID3D11Buffer* constantBuffers[]);
 
 	void release();
 
 	vector<Model*> models;
 
-private:
 
-
+protected:
 
 	ID3D11VertexShader* vertexShader = 0;
 	ID3D11PixelShader* pixelShader = 0;
@@ -50,13 +52,12 @@ private:
 	/* The Constant/Matrix Buffer */
 	ID3D11Buffer* matrixBuffer = 0;
 	ID3D11Buffer* lightBuffer = 0;
-	ID3D11SamplerState* sampleState = 0;
+	ID3D11SamplerState* samplerState = 0;
 
-
-	HRESULT initInputLayout(ID3D11Device* device, ID3D10Blob* vertexShaderBlob);
-	HRESULT initMatrixBuffer(ID3D11Device* device);
-	HRESULT initSamplerState(ID3D11Device* device);
-	HRESULT initLightBuffer(ID3D11Device* device);
+	virtual HRESULT initInputLayout(ID3D11Device* device, ID3D10Blob* vertexShaderBlob);
+	virtual HRESULT initMatrixBuffer(ID3D11Device* device);
+	virtual HRESULT initSamplerState(ID3D11Device* device);
+	virtual HRESULT initLightBuffer(ID3D11Device* device);
 
 	void outputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, const WCHAR* shaderFilename);
 };

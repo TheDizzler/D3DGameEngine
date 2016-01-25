@@ -26,27 +26,27 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 		return false;
 	}
 
-	if (!createConstantBuffer()) {
+	/*if (!createConstantBuffer()) {
 		MessageBox(hwnd, L"Direct3D failed to create the constant buffer", L"ERROR", MB_OK);
 		return false;
-	}
+	}*/
 
 
 
 
-	shaderManager = new ShaderManager();
-	shaderManager->initializeManager(device, hwnd);
-	meshLoader = new MeshLoader();
-	meshLoader->setShader(shaderManager->baseShader);
+	//shaderManager = new ShaderManager();
+	//shaderManager->initializeManager(device, hwnd);
+	//meshLoader = new MeshLoader();
+	//meshLoader->setShader(shaderManager->baseShader);
 
 
-	if (meshLoader->loadMesh(device, "../../D3DEngine/assets/spider/spider.obj") != NO_WORRIES) {
-		//MessageBox(NULL, L"Error trying to load mesh", L"ERROR", MB_OK);
-		return false;
-	}
+	//if (meshLoader->loadMesh(device, "../../D3DEngine/assets/spider/spider.obj") != NO_WORRIES) {
+	//	//MessageBox(NULL, L"Error trying to load mesh", L"ERROR", MB_OK);
+	//	return false;
+	//}
 
 
-	model = shaderManager->baseShader->models[0];
+	//model = shaderManager->baseShader->models[0];
 	
 	//if (!mesh->loadMesh(device, "./assets/house/house.obj")) {
 	//if (!mesh->loadMesh(device, "./assets/Aphrodite/aphrodite.obj")) {
@@ -66,16 +66,25 @@ bool GraphicsEngine::initGFXEngine(HINSTANCE hInstance, HWND hwnd) {
 	Globals::SCREEN_NEAR, Globals::SCREEN_DEPTH);*/
 
 
-	camera = new Camera();
+	camera = Camera();
+	camera.setViewPort(viewport);
 	//camera->setPosition(0.0f, 1.0f, -5.0f);
-	camera->setPosition(0.0f, 15.0f, -165.0f);
+	//camera->setPosition(0.0f, 15.0f, -165.0f);
 
-	light = new DiffuseLight();
+	/*light = new DiffuseLight();
 	light->setAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
 	light->setDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-	light->setDirection(1.0f, 0.0f, 0.0f);
+	light->setDirection(1.0f, 0.0f, 0.0f);*/
 
 
+	basicModel = new BasicModel(device);
+	if (!basicModel->loadTextures(device, deviceContext, L"Directx9.png"))
+		return false;
+
+
+	// Force a resize event so the camera's projection matrix gets initialized.
+	/*ResizeEventArgs resizeEventArgs(m_Window.get_ClientWidth(), m_Window.get_ClientHeight());
+	OnResize(resizeEventArgs);*/
 
 
 	testText();
@@ -134,7 +143,7 @@ void GraphicsEngine::initializeViewPort() {
 
 	projectionMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), screenAspect,
 		Globals::SCREEN_NEAR, Globals::SCREEN_DEPTH);
-	deviceContext->UpdateSubresource(constantBuffers[ApplicationBuffer], 0, NULL, &projectionMatrix, 0, 0);
+	//deviceContext->UpdateSubresource(constantBuffers[ApplicationBuffer], 0, NULL, &projectionMatrix, 0, 0);
 
 }
 
@@ -235,30 +244,38 @@ void GraphicsEngine::testText() {
 
 float rotation = 0.0f;
 
-void GraphicsEngine::update(double time, int fps) {
+void GraphicsEngine::update(double elapsedTime, int fps) {
 
 
 	wostringstream ws;
-	ws << "FPS: " << fps << "   Time: " << time << "s";
+	ws << "FPS: " << fps << "   Time: " << elapsedTime << "s";
 	wstring str(ws.str());
 	textFactory->editText(timer, str);
 
-	XMVECTOR eyePosition = XMVectorSet(0, 15.0f, -165.0f, 1);
-	XMVECTOR focusPoint = XMVectorSet(0, 0, 0, 1);
-	XMVECTOR upDirection = XMVectorSet(0, 1, 0, 0);
-	viewMatrix = XMMatrixLookAtLH(eyePosition, focusPoint, upDirection);
-	deviceContext->UpdateSubresource(constantBuffers[PerFrameBuffer], 0, nullptr, &viewMatrix, 0, 0);
+	//XMVECTOR eyePosition = XMVectorSet(0, 15.0f, -165.0f, 1);
+	//XMVECTOR focusPoint = XMVectorSet(0, 0, 0, 1);
+	//XMVECTOR upDirection = XMVectorSet(0, 1, 0, 0);
+	//viewMatrix = XMMatrixLookAtLH(eyePosition, focusPoint, upDirection);
+	//deviceContext->UpdateSubresource(constantBuffers[PerFrameBuffer], 0, nullptr, &viewMatrix, 0, 0);
 
 
-	static float angle = 0.0f;
-	angle += 90.0f * time;
-	XMVECTOR rotationAxis = XMVectorSet(0, 1, 1, 0);
+	//static float angle = 0.0f;
+	//angle += 90.0f * time;
+	//XMVECTOR rotationAxis = XMVectorSet(0, 1, 1, 0);
 
-	model->worldMatrix = XMMatrixRotationAxis(rotationAxis, XMConvertToRadians(angle));
+	//model->worldMatrix = XMMatrixRotationAxis(rotationAxis, XMConvertToRadians(angle));
 	// moved updatesubresource to render function in model3d
 
 
 	//camera->setViewMatrix(viewMatrix);
+
+
+	//XMVECTOR cameraTranslate = XMVectorSet(static_cast<float>(m_D - m_A), 0.0f, static_cast<float>(m_W - m_S), 1.0f) *elapsedTime;
+	//XMVECTOR cameraPan = XMVectorSet(0.0f, static_cast<float>(m_E - m_Q), 0.0f, 1.0f) * elapsedTime;
+	//camera.translate(cameraTranslate, Camera::LocalSpace);
+	//camera.translate(cameraPan, Camera::WorldSpace);
+
+	basicModel->update(elapsedTime, camera, deviceContext);
 }
 
 
@@ -269,13 +286,18 @@ void GraphicsEngine::render() {
 	deviceContext->ClearDepthStencilView(depthStencilView,
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, clearDepth, clearStencil);
 
-	deviceContext->VSSetConstantBuffers(0, 1, &constantBuffers[ApplicationBuffer]);
+	//deviceContext->VSSetConstantBuffers(0, 1, &constantBuffers[ApplicationBuffer]);
 
 	textFactory->draw();
 
+	
+
+
+	basicModel->render(deviceContext, camera, rasterState, renderTargetView, depthStencilState, depthStencilView);
+
 	//camera->render();
 
-	shaderManager->render(deviceContext, constantBuffers);
+	//shaderManager->render(deviceContext, constantBuffers);
 
 
 	/*if (!shaders->lightShader->render(deviceContext, meshLoader, worldMatrix, camera->getViewMatrix() , projectionMatrix, light)) {
@@ -302,15 +324,15 @@ void GraphicsEngine::shutdown() {
 		delete shaderManager;
 	}
 
-	for each (ID3D11Buffer* buffer in constantBuffers) {
+	/*for each (ID3D11Buffer* buffer in constantBuffers) {
 		if (buffer)
 			buffer->Release();
-	}
+	}*/
 
 	if (meshLoader)
 		delete meshLoader;
-	if (camera)
-		delete camera;
+	/*if (camera)
+		delete camera;*/
 
 	if (textFactory) {
 		textFactory->release();
